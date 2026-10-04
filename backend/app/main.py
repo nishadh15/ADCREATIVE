@@ -39,3 +39,6 @@ def integrations_status():
         "claude": "configured" if settings.claude_configured else "not_configured",
         "data_mode": "real" if settings.meta_configured else "demo_or_upload",
     }
+@app.get("/")
+def read_root():
+    return {"message": "Blank Hanger AI Backend API is running"}
