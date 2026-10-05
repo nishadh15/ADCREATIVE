@@ -1,4 +1,4 @@
-export const API = (process.env.NEXT_PUBLIC_API_URL || "https://adcreative-back.onrender.com").replace(/\/$/, "");
+export const API = "https://adcreative-back.onrender.com";
 export const getToken = () => (typeof window === "undefined" ? null : localStorage.getItem("bh_token"));
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (!API) throw new Error("NEXT_PUBLIC_API_URL is not set");
