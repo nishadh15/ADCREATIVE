@@ -1,4 +1,5 @@
 from ..database.base import *  # noqa
+from ..database.base import _now
 from sqlalchemy import ForeignKey, String, Integer, Float, Boolean, Text, Date, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from datetime import date, datetime
@@ -153,3 +154,10 @@ class PendingAction(Stamped, Base):
     requires_approval: Mapped[bool] = mapped_column(Boolean, default=True)
     status: Mapped[str] = s(20, default="pending")  # pending|approved|rejected|executed
     decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+class KVStore(Base):
+    """Workspace documents (uploaded analytics, calendar, approval queue, learnings)."""
+    __tablename__ = "kv_store"
+    key: Mapped[str] = mapped_column(String(100), primary_key=True)
+    value: Mapped[dict | None] = mapped_column(JSON)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=_now)

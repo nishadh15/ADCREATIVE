@@ -8,5 +8,5 @@ anthropic
 httpx
 python-jose[cryptography]
 passlib[bcrypt]
-slowapi
+
 pydantic[email]

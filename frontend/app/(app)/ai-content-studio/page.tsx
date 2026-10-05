@@ -1,1 +1,4 @@
-export default function P(){return <div><h1 className="text-2xl font-bold">Ai Content Studio</h1><p className="mt-2 text-sm text-neutral-400">Not built yet — placeholder (coming in a later phase).</p></div>}
+import AIPage from "@/components/AIPage";
+export default function P() { return <AIPage title="AI Content Studio" module="content_studio" cta="Create 5 versions" desc="Upload a product photo or describe it; get Viral, Sales, Funny, Premium and College versions."
+  action={{ type: "schedule_post", text: "Publish generated content to Instagram" }}
+  fields={[{ name: "product", label: "Product", placeholder: "Acid-wash oversized tee" }, { name: "image", label: "Product photo (optional)", type: "image" }, { name: "description", label: "Description / price / offer", type: "textarea" }]} />; }

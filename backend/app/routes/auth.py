@@ -1,5 +1,5 @@
 import hmac, time
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException, Header, Depends
 from jose import jwt, JWTError
 from pydantic import BaseModel, EmailStr
 from ..config import settings
@@ -31,5 +31,5 @@ def login(body: LoginIn):
     return {"access_token": make_token(body.email), "token_type": "bearer"}
 
 @router.get("/me")
-def me(user: str = ""):
+def me(user: str = Depends(current_user)):
     return {"user": user}
