@@ -7,12 +7,18 @@ from .routes import auth
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("blank-hanger")
 
-app = FastAPI(title="Blank Hanger AI Marketing Manager")
+# Disable redirect slashes so POST requests don't redirect and fail with 404
+app = FastAPI(title="Blank Hanger AI Marketing Manager", redirect_slashes=False)
 
-origins = {settings.frontend_url, "http://localhost:3000"}
+origins = {
+    settings.frontend_url,
+    "https://adcreative-sooty.vercel.app",
+    "http://localhost:3000"
+}
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[o for o in origins if o],  # never "*"
+    allow_origins=[o for o in origins if o],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -33,12 +39,12 @@ def health():
 
 @app.get("/api/integrations/status")
 def integrations_status():
-    """Lets the UI show honest connection state: nothing is 'real' unless configured."""
     return {
         "instagram": "connected" if settings.meta_configured else "not_configured",
         "claude": "configured" if settings.claude_configured else "not_configured",
         "data_mode": "real" if settings.meta_configured else "demo_or_upload",
     }
+
 @app.get("/")
 def read_root():
     return {"message": "Blank Hanger AI Backend API is running"}
