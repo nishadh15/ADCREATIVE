@@ -1,19 +1,26 @@
-export const API = (process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || "https://adcreative-back.onrender.com").replace(/\/$/, "");
+const rawUrl =
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "https://adcreative-back.onrender.com";
 
-export const getToken = () => (typeof window === "undefined" ? null : localStorage.getItem("bh_token"));
+// Strip out any accidental brackets [ ], quotes, or trailing slashes
+export const BASE_URL = rawUrl
+  .replace(/[\[\]"']/g, "")
+  .replace(/\/$/, "");
+
+export const getToken = () =>
+  typeof window === "undefined" ? null : localStorage.getItem("bh_token");
 
 export async function api<T = any>(path: string, init: RequestInit = {}): Promise<T> {
-  // Ensure path starts with a slash
+  // Ensure path starts with a single slash
   let cleanPath = path.startsWith("/") ? path : `/${path}`;
 
   // Ensure path starts with /api
   if (!cleanPath.startsWith("/api/")) {
-    cleanPath = `/api${cleanPath.replace(/^\/api/, "")}`;
+    cleanPath = `/api${cleanPath}`;
   }
 
-  // Construct full target URL
-  const targetUrl = `${API}${cleanPath}`;
-
+  const fullUrl = `${BASE_URL}${cleanPath}`;
   const token = getToken();
 
   const headers: Record<string, string> = {
@@ -22,7 +29,7 @@ export async function api<T = any>(path: string, init: RequestInit = {}): Promis
     ...((init.headers as Record<string, string>) || {}),
   };
 
-  const response = await fetch(targetUrl, {
+  const response = await fetch(fullUrl, {
     ...init,
     headers,
   });
