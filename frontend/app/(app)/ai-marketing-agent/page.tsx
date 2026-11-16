@@ -169,7 +169,7 @@ export default function Agent() {
 
   return (
     <div className="mx-auto flex h-[calc(100dvh-12rem)] min-h-[24rem] max-w-3xl flex-col lg:h-[calc(100dvh-14.5rem)]">
-      <div className="relative flex flex-wrap items-center justify-between gap-2 pb-3">
+      <div className="relative flex flex-wrap items-center justify-between gap-2 px-2 pb-4">
         <div className="flex flex-wrap items-center gap-2"><span className="tag">AI Marketing Agent</span>
           {d.profile && <span className="border-2 border-ink bg-lime px-2 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider">● Live · @{d.profile.username}</span>}</div>
         <div className="flex gap-2">
@@ -186,10 +186,10 @@ export default function Agent() {
         )}
       </div>
 
-      <div ref={scroller} onScroll={onScroll} className="flex-1 overflow-y-auto pb-2 pr-2 sm:pr-3">
+      <div ref={scroller} onScroll={onScroll} className="flex-1 overflow-y-auto px-2 pb-8 pt-3 [mask-image:linear-gradient(to_bottom,#000_calc(100%-28px),transparent)] [-webkit-mask-image:linear-gradient(to_bottom,#000_calc(100%-28px),transparent)]">
         <div className="flex min-h-full flex-col space-y-7">
           {empty ? (
-            <div className="my-auto flex flex-col items-center pt-6 text-center">
+            <div className="my-auto flex flex-col items-center pb-2 pt-10 text-center">
               <div className="relative">
                 <h1 className="max-w-xl !text-4xl sm:!text-5xl">How can I help<br /><span className="hl-orange">your brand today?</span></h1>
                 <div className="sticker-wrap absolute -right-6 -top-10 rotate-12 sm:-right-12 sm:-top-10 lg:-right-20">
@@ -226,7 +226,7 @@ export default function Agent() {
         </div>
       </div>
 
-      <div className="pt-4">
+      <div className="px-2 pb-1 pt-3">
         <div className="flex items-end gap-2 border-[3px] border-ink bg-bone p-2 shadow-[6px_6px_0_0_#0A0A0A] sm:gap-3">
           <textarea ref={box} rows={1} value={t} placeholder="Ask your marketing team…" enterKeyHint="send"
             onChange={(e) => setT(e.target.value)}
