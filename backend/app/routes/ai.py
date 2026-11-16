@@ -21,7 +21,7 @@ class ChatIn(BaseModel):
     context: dict = {}
 
 def _ctx(c: dict) -> str:
-    return "DATA CONTEXT (source labels included; 'demo' means fake sample data):\n" + json.dumps(c)[:30000]
+    return "DATA CONTEXT (source labels included; 'demo' means fake sample data):\n" + json.dumps(c)[:cs.settings.groq_max_context_chars]
 
 @router.post("/run")
 def run(body: RunIn, user: str = Depends(current_user)):
@@ -34,8 +34,14 @@ def run(body: RunIn, user: str = Depends(current_user)):
     if body.image:
         content = [{"type": "image", "source": {"type": "base64", **body.image}}, {"type": "text", "text": text}]
     try:
-        out = cs.ask(COMMON + spec, content, search=search)
-        return {"module": body.module, "result": cs.parse_json(out), "model": cs.settings.groq_model}
+        for attempt in (1, 2):
+            out, used = cs.ask_ex(COMMON + spec, content)
+            try:
+                return {"module": body.module, "result": cs.parse_json(out), "model": used}
+            except ValueError:
+                log.warning("unparseable AI output (module=%s, model=%s, attempt=%d): %r", body.module, used, attempt, out[:300])
+                if attempt == 2:
+                    raise
     except RuntimeError as e:
         raise HTTPException(503, str(e))
     except ValueError:

@@ -16,8 +16,11 @@ class Settings(BaseSettings):
     groq_api_key_8: str = ""
     groq_api_key_9: str = ""
     groq_api_key_10: str = ""
-    groq_model: str = "llama-3.3-70b-versatile"
-    groq_vision_model: str = "meta-llama/llama-4-scout-17b-16e-instruct"
+    # Fallback chain, tried in order. Defaults are Groq free-tier models.
+    groq_models: str = "openai/gpt-oss-120b,openai/gpt-oss-20b,qwen/qwen3.8-27b"
+    groq_vision_model: str = ""      # set a vision-capable model ID to enable image input
+    groq_max_tokens: int = 3000      # cap per reply; free tier allows ~8K tokens/min per model
+    groq_max_context_chars: int = 12000   # cap on data context sent per request
     meta_app_id: str = ""
     meta_app_secret: str = ""
     meta_access_token: str = ""
@@ -46,6 +49,10 @@ class Settings(BaseSettings):
             if k and k not in seen:
                 seen.add(k); out.append(k)
         return out
+
+    @property
+    def groq_model_list(self) -> list[str]:
+        return [m.strip() for m in self.groq_models.split(",") if m.strip()]
 
     @property
     def claude_configured(self) -> bool:

@@ -79,8 +79,9 @@ npm run dev                                            # http://localhost:3000
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Yes | The single admin login |
 | `FRONTEND_URL` | Yes | Your frontend origin (for CORS), no trailing slash |
 | `GROQ_API_KEYS` | Yes | Comma-separated Groq keys, up to 10. Alternatively `GROQ_API_KEY_1` … `GROQ_API_KEY_10`. |
-| `GROQ_MODEL` | No | Default `llama-3.3-70b-versatile` |
-| `GROQ_VISION_MODEL` | No | Default `meta-llama/llama-4-scout-17b-16e-instruct` |
+| `GROQ_MODELS` | No | Comma-separated fallback chain, default `openai/gpt-oss-120b,openai/gpt-oss-20b,qwen/qwen3.8-27b` |
+| `GROQ_VISION_MODEL` | No | Only needed for image input; empty by default |
+| `GROQ_MAX_TOKENS` / `GROQ_MAX_CONTEXT_CHARS` | No | Reply cap (3000) and data-context cap (12000 chars), sized for the free tier |
 | `META_ACCESS_TOKEN` | For Instagram | Long-lived Meta token with `instagram_basic`, `instagram_manage_insights`, `pages_show_list` |
 | `META_IG_USER_ID` | For Instagram | Instagram Business/Creator account ID (`INSTAGRAM_ACCOUNT_ID` also works) |
 

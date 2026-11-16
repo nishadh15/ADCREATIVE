@@ -1,8 +1,11 @@
-"""LLM service backed by Groq (OpenAI-compatible API) with multi-key fallback.
+"""LLM service backed by Groq (OpenAI-compatible API).
 
+Resilience, in two layers:
+  * MODEL chain (GROQ_MODELS): if a model is rate-limited on every key, too large, or
+    unavailable, the next model is tried.
+  * KEY pool (GROQ_API_KEYS, up to 10): round-robin start; a failing key is skipped for a
+    cooldown. Free-tier limits are per model, so cooldowns are tracked per (key, model).
 The module keeps its old name/interface (ask, chat, parse_json) so routes don't change.
-Keys are tried in round-robin order; a key that fails (rate limit, auth, quota, 5xx,
-network) is put on a short cooldown and the next key is tried automatically.
 """
 import json, re, logging, time, itertools, threading
 import httpx
@@ -12,10 +15,10 @@ log = logging.getLogger("groq")
 URL = "https://api.groq.com/openai/v1/chat/completions"
 
 _lock = threading.Lock()
-_cooldown: dict[str, float] = {}   # key -> unix time until which it is skipped
+_cooldown: dict[tuple[str, str], float] = {}   # (key, model) -> unix time until skipped
 _rr = itertools.count()
 
-def _order() -> list[str]:
+def _key_order(model: str) -> list[str]:
     keys = settings.groq_keys
     if not keys:
         raise RuntimeError("No Groq API keys set (GROQ_API_KEYS or GROQ_API_KEY_1..10)")
@@ -23,13 +26,11 @@ def _order() -> list[str]:
         start = next(_rr) % len(keys)
         rotated = keys[start:] + keys[:start]
         now = time.time()
-        live = [k for k in rotated if _cooldown.get(k, 0) <= now]
-    # if every key is cooling down, still try them all (soonest-to-recover first)
-    return live or sorted(rotated, key=lambda k: _cooldown.get(k, 0))
+        return [k for k in rotated if _cooldown.get((k, model), 0) <= now]
 
-def _mark(key: str, seconds: float):
+def _mark(key: str, model: str, seconds: float):
     with _lock:
-        _cooldown[key] = time.time() + seconds
+        _cooldown[(key, model)] = time.time() + seconds
 
 def _to_content(user):
     """Convert Anthropic-style content blocks to OpenAI/Groq format."""
@@ -45,58 +46,121 @@ def _to_content(user):
             parts.append({"type": "text", "text": b.get("text", "")})
     return parts, has_img
 
-def _complete(system: str, messages: list, max_tokens: int, model: str | None = None) -> str:
+def complete(system: str, messages: list, max_tokens: int, json_mode: bool = False) -> tuple[str, str]:
+    """Returns (text, model_used)."""
     msgs = [{"role": "system", "content": system}]
     vision = False
     for m in messages:
         c, img = _to_content(m["content"])
         vision = vision or img
         msgs.append({"role": m["role"], "content": c})
-    payload = {"model": model or (settings.groq_vision_model if vision else settings.groq_model),
-               "messages": msgs, "max_tokens": max_tokens, "temperature": 0.4}
-    last = "unknown error"
-    for key in _order():
-        try:
-            r = httpx.post(URL, json=payload, headers={"Authorization": f"Bearer {key}"}, timeout=120)
-        except httpx.HTTPError as e:
-            last = type(e).__name__
-            log.warning("groq key ...%s network error: %s", key[-4:], last)
-            _mark(key, 15)
-            continue
-        if r.status_code == 200:
-            return r.json()["choices"][0]["message"].get("content") or ""
-        last = f"HTTP {r.status_code}"
-        log.warning("groq key ...%s failed: %s %s", key[-4:], r.status_code, r.text[:200])
-        if r.status_code == 429:
+    if vision:
+        if not settings.groq_vision_model:
+            raise RuntimeError("Image input needs a vision model: set GROQ_VISION_MODEL on the backend")
+        models = [settings.groq_vision_model]
+    else:
+        models = settings.groq_model_list or ["openai/gpt-oss-20b"]
+    max_tokens = min(max_tokens, settings.groq_max_tokens)
+
+    last, bad_request, truncated = "unknown error", None, False
+    for model in models:
+        payload = {"model": model, "messages": msgs, "max_tokens": max_tokens, "temperature": 0.4}
+        if model.startswith("openai/gpt-oss"):
+            payload["reasoning_effort"] = "low"        # reasoning tokens count against max_tokens; keep them small
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
+        for key in _key_order(model):
             try:
-                wait = float(r.headers.get("retry-after", 30))
-            except ValueError:
-                wait = 30
-            _mark(key, min(max(wait, 5), 300))
-        elif r.status_code in (401, 403):
-            _mark(key, 3600)        # bad/revoked key
-        elif r.status_code >= 500:
-            _mark(key, 15)
-        elif r.status_code == 400:
-            # request itself is bad (model/params/too large); other keys won't help
-            raise ValueError(f"Groq rejected the request: {r.text[:200]}")
-        else:
-            _mark(key, 30)
-    raise RuntimeError(f"All Groq API keys failed (last: {last})")
+                r = httpx.post(URL, json=payload, headers={"Authorization": f"Bearer {key}"}, timeout=120)
+            except httpx.HTTPError as e:
+                last = f"{model}: {type(e).__name__}"
+                _mark(key, model, 15)
+                continue
+            if r.status_code == 200:
+                ch = r.json()["choices"][0]
+                text = ch["message"].get("content") or ""
+                if ch.get("finish_reason") == "length" or not text.strip():
+                    last = f"{model}: reply cut off or empty"
+                    log.warning("groq %s: finish_reason=%s, %d chars", model, ch.get("finish_reason"), len(text))
+                    truncated = True
+                    break                              # try the next model
+                return text, model
+            last = f"{model}: HTTP {r.status_code}"
+            log.warning("groq %s key ...%s -> %s %s", model, key[-4:], r.status_code, r.text[:160])
+            if r.status_code == 429:
+                try:
+                    wait = float(r.headers.get("retry-after", 30))
+                except ValueError:
+                    wait = 30
+                _mark(key, model, min(max(wait, 5), 300))
+            elif r.status_code in (401, 403):
+                _mark(key, model, 3600)            # bad/revoked key
+            elif r.status_code >= 500:
+                _mark(key, model, 15)
+            elif r.status_code == 400 and payload.get("response_format"):
+                payload.pop("response_format")        # model doesn't support JSON mode: retry without it
+                try:
+                    r2 = httpx.post(URL, json=payload, headers={"Authorization": f"Bearer {key}"}, timeout=120)
+                    if r2.status_code == 200:
+                        ch = r2.json()["choices"][0]
+                        if ch.get("finish_reason") != "length" and (ch["message"].get("content") or "").strip():
+                            return ch["message"]["content"], model
+                except httpx.HTTPError:
+                    pass
+                bad_request = r.text[:200]
+                break
+            elif r.status_code in (400, 404, 413, 422):
+                # request/model-level problem: other keys give the same answer, so try the next model
+                bad_request = r.text[:200]
+                break
+            else:
+                _mark(key, model, 30)
+    if truncated and not bad_request:
+        raise ValueError("Model reply was cut off or empty; ask for a shorter output or raise GROQ_MAX_TOKENS")
+    if bad_request and last.endswith(("400", "404", "413", "422")):
+        raise ValueError(f"Groq rejected the request: {bad_request}")
+    raise RuntimeError(f"All Groq keys/models failed or are rate-limited (last: {last}). Try again shortly.")
 
 def ask(system: str, user, search: bool = False, max_tokens: int = 4000) -> str:
-    # Groq has no Anthropic-style web_search tool; `search` is accepted but ignored.
-    return _complete(system, [{"role": "user", "content": user}], max_tokens)
+    # Groq has no web_search tool; `search` is accepted but ignored.
+    return complete(system, [{"role": "user", "content": user}], max_tokens)[0]
+
+def ask_ex(system: str, user, max_tokens: int = 4000) -> tuple[str, str]:
+    """JSON-mode call used by the structured AI modules."""
+    return complete(system, [{"role": "user", "content": user}], max_tokens, json_mode=True)
 
 def chat(system: str, messages: list, max_tokens: int = 2000) -> str:
-    return _complete(system, messages, max_tokens)
+    return complete(system, messages, max_tokens)[0]
+
+def _balanced(t: str):
+    """First balanced {...} or [...] block in t, or None."""
+    for i, ch in enumerate(t):
+        if ch in "{[":
+            close, depth, in_str, esc = "}" if ch == "{" else "]", 0, False, False
+            for j in range(i, len(t)):
+                c = t[j]
+                if in_str:
+                    if esc: esc = False
+                    elif c == "\\": esc = True
+                    elif c == '"': in_str = False
+                elif c == '"': in_str = True
+                elif c == ch: depth += 1
+                elif c == close:
+                    depth -= 1
+                    if depth == 0:
+                        return t[i:j + 1]
+            return None
+    return None
 
 def parse_json(text: str):
-    t = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.M).strip()
-    try:
-        return json.loads(t)
-    except Exception:
-        m = re.search(r"\{.*\}", t, re.S)
-        if not m:
-            raise ValueError("Model did not return JSON")
-        return json.loads(m.group(0))
+    t = re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()          # some models emit reasoning tags
+    t = re.sub(r"^```(?:json)?|```$", "", t, flags=re.M).strip()
+    for cand in (t, _balanced(t)):
+        if not cand:
+            continue
+        try:
+            v = json.loads(cand)
+            return {"items": v} if isinstance(v, list) else v               # bare arrays -> {"items": [...]}
+        except Exception:
+            pass
+    raise ValueError("Model did not return JSON")
