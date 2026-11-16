@@ -20,7 +20,7 @@ export default function Calendar() {
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold">Content Calendar</h1><p className="text-sm text-neutral-400">Drag a card to another day to reschedule. Items are drafts: nothing is published from here.</p></div>
-      <div className="flex items-center gap-3"><select className="rounded-lg border border-line bg-paper px-3 py-2 text-sm" value={days} onChange={(e) => setDays(+e.target.value)}>{[7, 14, 30].map((n) => <option key={n} value={n}>{n} days</option>)}</select>
+      <div className="flex flex-wrap items-center gap-3"><select className="rounded-lg border border-line bg-paper px-3 py-2 text-sm" value={days} onChange={(e) => setDays(+e.target.value)}>{[7, 14, 30].map((n) => <option key={n} value={n}>{n} days</option>)}</select>
         <button onClick={gen} disabled={busy} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50">{busy ? "Planning…" : `Generate ${days}-day plan`}</button><Badge kind="ai" />{cal.length > 0 && <button onClick={() => setClr(true)} className="ml-auto border-2 border-line px-3 py-2 text-xs">Clear plan</button>}</div>
       {err && <p className="text-sm text-red-300">{err}</p>}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{dates.map((dt) => (

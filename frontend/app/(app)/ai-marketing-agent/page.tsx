@@ -115,7 +115,7 @@ export default function Agent() {
         <div className="truncate text-sm font-bold">{s.title}</div>
         <div className="font-mono text-[10px] font-bold uppercase tracking-wider text-neutral-500">{ago(s.updated)} · {s.messages.length} msgs</div>
       </button>
-      <button aria-label="Delete chat" onClick={() => removeSession(s.id)} className="shrink-0 !border-0 border-l-2 !border-l-ink !bg-transparent px-3 font-mono text-sm font-bold !shadow-none hover:!bg-peach">✕</button>
+      <button aria-label="Delete chat" onClick={() => removeSession(s.id)} className="shrink-0 !border-0 border-l-2 !border-l-ink !bg-transparent px-4 font-mono text-sm font-bold !shadow-none hover:!bg-peach">✕</button>
     </li>
   );
 
@@ -157,7 +157,7 @@ export default function Agent() {
                   </button>
                 ))}
               </div>
-              {sessions.length > 0 && (
+              {sessions.length > 0 && !showList && (
                 <div className="mt-8 w-full text-left">
                   <span className="tag">Recent chats</span>
                   <ul className="mt-3 space-y-2">{sessions.map((s) => <SessionRow key={s.id} s={s} />)}</ul>
