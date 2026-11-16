@@ -1,6 +1,6 @@
 import { useId } from "react";
 
-export function Line({ data, color = "#0A0A0A" }: { data: number[]; color?: string }) {
+export function Line({ data }: { data: number[]; color?: string }) {
   const id = useId().replace(/:/g, "");
   if (data.length < 2) return <div className="py-6 font-mono text-xs text-neutral-500">// not enough data</div>;
   const w = 300, h = 96, mn = Math.min(...data), mx = Math.max(...data), r = mx - mn || 1;
@@ -11,7 +11,7 @@ export function Line({ data, color = "#0A0A0A" }: { data: number[]; color?: stri
     <svg viewBox={`0 0 ${w} ${h}`} className="h-24 w-full overflow-visible" preserveAspectRatio="none">
       <defs><pattern id={`h${id}`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="6" fill="#FF5A14" /></pattern></defs>
       <path d={`${d} L${w},${h} L0,${h} Z`} fill={`url(#h${id})`} opacity="0.55" />
-      <path d={d} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="miter" vectorEffect="non-scaling-stroke" />
+      <path d={d} fill="none" stroke="#0A0A0A" strokeWidth="3" strokeLinejoin="miter" vectorEffect="non-scaling-stroke" />
       <rect x={last[0] - 5} y={last[1] - 5} width="10" height="10" fill="#C6FF00" stroke="#0A0A0A" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
     </svg>
   );

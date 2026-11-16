@@ -9,7 +9,10 @@ const slug = (n: string) => n.toLowerCase().replace(/ /g, "-");
 const Logo = () => (
   <div className="flex items-center gap-3">
     <span className="grid h-11 w-11 shrink-0 -rotate-6 place-items-center border-[3px] border-ink bg-accent font-display text-2xl leading-none text-ink shadow-brutsm">B</span>
-    <span className="font-display text-xl uppercase leading-[0.95] tracking-wide">Blank Hanger<br /><span className="bg-ink px-1.5 text-lime">AI Manager</span></span>
+    <span className="flex flex-col items-start gap-1.5 font-display uppercase">
+      <span className="text-[22px] leading-none tracking-wide">Blank Hanger</span>
+      <span className="bg-ink px-2 py-[3px] text-[15px] leading-none tracking-[0.12em] text-lime">AI Manager</span>
+    </span>
   </div>
 );
 
@@ -26,7 +29,7 @@ export default function Sidebar() {
         <div className="flex h-full flex-col border-[3px] border-ink bg-bone p-5 shadow-[8px_8px_0_0_#0A0A0A]">
           <Logo />
           <p className="mb-2 mt-7 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">// Workspace</p>
-          <nav className="-mr-2 flex-1 space-y-1.5 overflow-y-auto pb-1 pr-3">
+          <nav className="no-scrollbar flex-1 space-y-1.5 overflow-y-auto pb-1">
             {NAV.map((n, i) => {
               const href = "/" + slug(n), on = path === href;
               return (

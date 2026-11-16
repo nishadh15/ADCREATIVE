@@ -1,7 +1,7 @@
 import "./globals.css";
-import { Anton, Space_Grotesk, Space_Mono } from "next/font/google";
+import { Big_Shoulders_Display, Space_Grotesk, Space_Mono } from "next/font/google";
 
-const display = Anton({ subsets: ["latin"], weight: "400", variable: "--font-display", display: "swap" });
+const display = Big_Shoulders_Display({ subsets: ["latin"], weight: ["800", "900"], variable: "--font-display", display: "swap" });
 const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk", display: "swap" });
 const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono", display: "swap" });
 

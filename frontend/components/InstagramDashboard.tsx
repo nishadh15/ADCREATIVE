@@ -58,7 +58,7 @@ export default function InstagramDashboard() {
           )}
           <div>
             <span className="tag">Live · Meta Graph</span>
-            <h2 className="mt-2 !text-3xl">{overview.name}</h2>
+            <h2 className="mt-2 !text-3xl">{String(overview.name || overview.username).normalize("NFKC")}</h2>
             <p className="font-mono text-sm font-bold text-neutral-500">@{overview.username}</p>
           </div>
           <div className="ml-auto flex gap-8">
