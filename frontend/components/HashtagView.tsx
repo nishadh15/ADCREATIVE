@@ -20,7 +20,7 @@ export function cleanTags(a: any): string[] {
 
 const Chip = ({ t, tone = "bg-bone" }: { t: string; tone?: string }) => (
   <button type="button" title="Click to copy" onClick={() => copyText(t)}
-    className={`border-2 border-ink px-2.5 py-0.5 font-mono text-xs font-bold text-ink shadow-[2px_2px_0_0_#0A0A0A] transition-all duration-100 hover:-translate-y-px hover:bg-accent active:translate-x-px active:translate-y-px active:shadow-none ${tone}`}>{t}</button>
+    className={`chip border-2 border-ink px-2.5 py-0.5 font-mono text-xs font-bold text-ink shadow-[2px_2px_0_0_#0A0A0A] transition-all duration-100 hover:-translate-y-px hover:bg-accent active:translate-x-px active:translate-y-px active:shadow-none ${tone}`}>{t}</button>
 );
 
 export default function HashtagView({ v }: { v: any }) {

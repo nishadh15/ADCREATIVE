@@ -42,3 +42,50 @@ export const Card = ({ title, badge, children }: { title: string; badge?: React.
     {children}
   </div>
 );
+
+/** Vertical column chart with hard borders. `hi` highlights a column in lime. */
+export function Columns({ items, fmt = (v: number) => String(Math.round(v)), color = "bg-accent" }: { items: { label: string; value: number; hi?: boolean }[]; fmt?: (v: number) => string; color?: string }) {
+  if (!items.length) return <div className="py-6 font-mono text-xs text-neutral-500">// no data</div>;
+  const mx = Math.max(...items.map((i) => i.value), 0.0001);
+  const vals = items.length <= 14;
+  const every = Math.ceil(items.length / 14);
+  return (
+    <div>
+      <div className="flex h-44 items-stretch gap-1.5 border-b-[3px] border-ink px-1 pt-5">
+        {items.map((i, n) => {
+          const pct = Math.max(3, (i.value / mx) * 100);
+          return (
+            <div key={n} className="relative min-w-0 flex-1" title={`${i.label}: ${fmt(i.value)}`}>
+              <div className={`absolute inset-x-0 bottom-0 origin-bottom animate-growy border-[2px] border-ink ${i.hi ? "bg-lime" : color}`} style={{ height: `${pct}%`, animationDelay: `${n * 40}ms` }} />
+              {vals && <span className="absolute inset-x-0 text-center font-mono text-[9px] font-bold" style={{ bottom: `calc(${pct}% + 3px)` }}>{fmt(i.value)}</span>}
+            </div>
+          );
+        })}
+      </div>
+      <div className="mt-1.5 flex gap-1.5 px-1">
+        {items.map((i, n) => <div key={n} className="min-w-0 flex-1 truncate text-center font-mono text-[9px] font-bold uppercase text-neutral-500">{n % every === 0 ? i.label : ""}</div>)}
+      </div>
+    </div>
+  );
+}
+
+const SEG = ["bg-accent", "bg-lime", "bg-ink", "bg-peach", "bg-paper"];
+/** 100% stacked bar with a legend. */
+export function Stacked({ items }: { items: { label: string; value: number }[] }) {
+  const tot = items.reduce((s, i) => s + i.value, 0);
+  if (!tot) return <div className="py-6 font-mono text-xs text-neutral-500">// no data</div>;
+  return (
+    <div>
+      <div className="flex h-10 border-[3px] border-ink">
+        {items.map((i, n) => <div key={i.label} className={`${SEG[n % SEG.length]} ${n ? "border-l-[3px] border-ink" : ""}`} style={{ width: `${(i.value / tot) * 100}%` }} />)}
+      </div>
+      <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5">
+        {items.map((i, n) => (
+          <li key={i.label} className="flex items-center gap-2 font-mono text-[11px] font-bold uppercase">
+            <span className={`h-3 w-3 border-2 border-ink ${SEG[n % SEG.length]}`} />{i.label} · {i.value} ({Math.round((i.value / tot) * 100)}%)
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

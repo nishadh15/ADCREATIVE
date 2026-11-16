@@ -46,11 +46,13 @@ module.exports = {
       keyframes: {
         rise: { "0%": { opacity: 0, transform: "translateY(16px)" }, "100%": { opacity: 1, transform: "translateY(0)" } },
         grow: { "0%": { transform: "scaleX(0)" }, "100%": { transform: "scaleX(1)" } },
+        growy: { "0%": { transform: "scaleY(0)" }, "100%": { transform: "scaleY(1)" } },
         slide: { "0%": { transform: "translateX(0)" }, "100%": { transform: "translateX(-50%)" } },
       },
       animation: {
         rise: "rise 0.45s cubic-bezier(0.2,0.9,0.3,1) both",
         grow: "grow 0.7s cubic-bezier(0.2,0.9,0.3,1) both",
+        growy: "growy 0.6s cubic-bezier(0.2,0.9,0.3,1) both",
         slide: "slide 28s linear infinite",
       },
     },

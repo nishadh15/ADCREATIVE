@@ -33,6 +33,11 @@ export default function Calendar() {
         <h3 className="font-semibold">{open.content_type} · {open.date} {open.time}</h3>
         {["product", "hook", "idea", "caption", "cta", "audio", "objective", "ad_potential"].map((k) => <p key={k} className="mt-2"><span className="text-[11px] uppercase text-accent">{k.replace("_", " ")}</span><br />{open[k] || "—"}</p>)}
         <p className="mt-2 text-neutral-400">{(open.hashtags || []).join(" ")}</p>
+        <label className="mt-4 block font-mono text-[11px] font-bold uppercase tracking-wider">Move to day
+          <select className="mt-1 w-full px-3 py-2 text-sm" value={open.date} onChange={(e) => { move(open.id, e.target.value); setOpen({ ...open, date: e.target.value }); }}>
+            {dates.map((dt) => <option key={dt} value={dt}>{fmt(dt)}</option>)}
+          </select>
+        </label>
         <div className="mt-4 flex gap-2"><button className="rounded-lg border border-accent px-3 py-1.5 text-xs text-accent" onClick={() => { queueAction({ action: "schedule_post", what_will_happen: `Schedule ${open.content_type} on Instagram`, cost: 0, target: "Instagram feed/Reels", schedule: `${open.date} ${open.time}`, content: open }); setOpen(null); }}>Send to approval queue</button>
           <button className="rounded-lg border border-line px-3 py-1.5 text-xs text-red-300" onClick={() => { setDel(open); setOpen(null); }}>Delete</button></div></div></div>)}
       {clr && <Modal title="Clear the whole plan?" body="This removes every calendar item. Generate a fresh plan afterwards." yes="Clear all" onNo={() => setClr(false)} onYes={() => { update({ calendar: [] }); setClr(false); }} />}

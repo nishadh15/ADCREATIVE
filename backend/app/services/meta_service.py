@@ -1,6 +1,12 @@
 import httpx
+from datetime import datetime, timedelta, timezone
 from ..config import settings
 G = "https://graph.facebook.com/v21.0"
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def _ist(ts: str) -> datetime:
+    """Instagram timestamps are UTC (e.g. 2026-10-22T12:30:00+0000); the brand posts for India, so report IST."""
+    return datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S%z").astimezone(IST)
 
 def sync_profile_and_media(limit: int = 30):
     """Reads (never writes) from the Instagram Graph API. Requires META_ACCESS_TOKEN + META_IG_USER_ID."""
@@ -23,7 +29,8 @@ def sync_profile_and_media(limit: int = 30):
                     ins = {i["name"]: i["values"][0]["value"] for i in r.json().get("data", [])}
             except Exception:
                 pass
-            posts.append({"date": m["timestamp"][:10], "hour": int(m["timestamp"][11:13]),
+            ist = _ist(m["timestamp"])
+            posts.append({"date": ist.date().isoformat(), "hour": ist.hour,
                 "type": "Reel" if m.get("media_product_type") == "REELS" else m.get("media_type", "Post").title(),
                 "caption": m.get("caption", ""), "hook": (m.get("caption") or "").split("\n")[0][:120],
                 "reach": ins.get("reach", 0), "likes": m.get("like_count", 0), "comments": m.get("comments_count", 0),

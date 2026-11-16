@@ -75,7 +75,7 @@ export default function Dashboard() {
               <span>{t}</span>
               {B(s)}
             </div>
-            <div className={`mt-3 font-display text-5xl leading-none tabular-nums ${v ? "" : "text-neutral-700"}`}>{v ?? "—"}</div>
+            <div className={`mt-3 font-display text-4xl leading-none tabular-nums sm:text-5xl ${v ? "" : "text-neutral-700"}`}>{v ?? "—"}</div>
           </div>
         ))}
       </div>
@@ -89,7 +89,7 @@ export default function Dashboard() {
         <Card title="Marketing Health Score" badge={score ? <span className="text-[10px] text-neutral-500">rule-based</span> : null}>
           {score ? (
             <div>
-              <div className="font-display text-6xl leading-none">{score.score}<span className="text-sm text-neutral-500">/100</span></div>
+              <div className="font-display text-5xl leading-none sm:text-6xl">{score.score}<span className="text-sm text-neutral-500">/100</span></div>
               <div className="mt-2 h-4 border-[3px] border-ink bg-bone"><div className="h-full origin-left animate-grow border-r-[3px] border-ink bg-accent" style={{ width: `${score.score}%` }} /></div>
               <ul className="mt-2 space-y-1 text-xs">
                 {score.parts.map((p: any) => (

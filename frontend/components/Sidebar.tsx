@@ -25,7 +25,7 @@ export default function Sidebar() {
   return (
     <>
       {/* Desktop rail */}
-      <aside className="sticky top-4 hidden h-[calc(100dvh-2rem)] w-72 shrink-0 self-start pl-4 md:block">
+      <aside className="sticky top-4 hidden h-[calc(100dvh-2rem)] w-72 shrink-0 self-start pl-4 lg:block">
         <div className="flex h-full flex-col border-[3px] border-ink bg-bone p-5 shadow-[8px_8px_0_0_#0A0A0A]">
           <Logo />
           <p className="mb-2 mt-7 font-mono text-[10px] font-bold uppercase tracking-[0.2em] text-neutral-500">// Workspace</p>
@@ -45,7 +45,7 @@ export default function Sidebar() {
       </aside>
 
       {/* Mobile bar + full-screen menu */}
-      <div className="fixed inset-x-0 top-0 z-40 border-b-[3px] border-ink bg-bone px-4 py-3 md:hidden">
+      <div className="fixed inset-x-0 top-0 z-40 border-b-[3px] border-ink bg-bone px-4 py-3 pt-[max(0.75rem,env(safe-area-inset-top))] lg:hidden">
         <div className="flex items-center justify-between">
           <Logo />
           <button aria-label="Menu" aria-expanded={open} onClick={() => setOpen((o) => !o)}
@@ -56,11 +56,13 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-      <div className={`fixed inset-0 z-30 bg-accent transition-transform duration-300 ease-fluid md:hidden ${open ? "translate-y-0" : "-translate-y-full"}`}>
-        <nav className="flex h-full flex-col justify-center gap-0.5 overflow-y-auto px-6 pb-10 pt-24">
+      <div className={`fixed inset-0 z-30 bg-accent transition-transform duration-300 ease-fluid lg:hidden ${open ? "translate-y-0" : "-translate-y-full"}`}>
+        <nav className="mx-auto flex h-full max-w-md flex-col gap-0.5 overflow-y-auto px-6 pb-10 pt-24 [&>a]:shrink-0">
           {NAV.map((n) => (
-            <Link key={n} href={"/" + slug(n)} className={`font-display text-4xl uppercase leading-tight ${path === "/" + slug(n) ? "text-bone [text-shadow:3px_3px_0_#0A0A0A]" : "text-ink"}`}>{n}</Link>
+            <Link key={n} href={"/" + slug(n)} className={`font-display text-4xl uppercase leading-tight sm:text-5xl ${path === "/" + slug(n) ? "text-bone [text-shadow:3px_3px_0_#0A0A0A]" : "text-ink"}`}>{n}</Link>
           ))}
+          <button onClick={() => { localStorage.removeItem("bh_token"); window.location.href = "/login"; }}
+            className="mt-6 self-start border-[3px] border-ink bg-bone px-5 py-2 font-mono text-xs font-bold uppercase tracking-widest text-ink shadow-brutsm">Sign out ↗</button>
         </nav>
       </div>
     </>

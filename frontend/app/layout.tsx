@@ -6,6 +6,7 @@ const grotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-grotesk", 
 const mono = Space_Mono({ subsets: ["latin"], weight: ["400", "700"], variable: "--font-mono", display: "swap" });
 
 export const metadata = { title: "Blank Hanger AI Marketing Manager" };
+export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" as const, themeColor: "#E9B9A4" };
 export default function Root({ children }: { children: React.ReactNode }) {
   return <html lang="en" className={`${display.variable} ${grotesk.variable} ${mono.variable}`}><body className="font-sans">{children}</body></html>;
 }

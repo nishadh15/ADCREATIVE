@@ -32,7 +32,7 @@ export default function Login() {
 
   const field = "w-full px-4 py-3 text-sm placeholder:text-neutral-600";
   return (
-    <div className="grid min-h-[100dvh] place-items-center px-4 py-12">
+    <div className="grid min-h-[100dvh] place-items-center overflow-x-clip px-4 py-14">
       <div className="relative w-full max-w-lg animate-rise">
         <div className="sticker-wrap absolute -right-4 -top-16 z-10 rotate-12 md:-right-14 md:-top-20">
           <div className="sticker h-32 w-32 p-4 md:h-40 md:w-40"><span className="font-display text-xl uppercase leading-[0.95] md:text-2xl">Welcome<br />back!</span></div>

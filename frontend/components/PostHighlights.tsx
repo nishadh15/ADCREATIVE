@@ -62,7 +62,7 @@ export default function PostHighlights({ posts }: { posts: Post[] }) {
                     </ul>
                   </div>
                   {p.permalink && (
-                    <a href={p.permalink} target="_blank" rel="noopener noreferrer" className="mt-4 self-start border-2 border-ink bg-bone px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider shadow-[2px_2px_0_0_#0A0A0A] transition-all duration-100 hover:bg-lime active:translate-x-px active:translate-y-px active:shadow-none">
+                    <a href={p.permalink} target="_blank" rel="noopener noreferrer" className="tap mt-4 self-start border-2 border-ink bg-bone px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-wider shadow-[2px_2px_0_0_#0A0A0A] transition-all duration-100 hover:bg-lime active:translate-x-px active:translate-y-px active:shadow-none">
                       Open on Instagram ↗
                     </a>
                   )}

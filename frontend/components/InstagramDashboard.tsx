@@ -61,10 +61,10 @@ export default function InstagramDashboard() {
             <h2 className="mt-2 !text-3xl">{String(overview.name || overview.username).normalize("NFKC")}</h2>
             <p className="font-mono text-sm font-bold text-neutral-500">@{overview.username}</p>
           </div>
-          <div className="ml-auto flex gap-8">
+          <div className="flex gap-8 sm:ml-auto">
             {[["Followers", overview.followers_count], ["Posts", overview.media_count]].map(([l, v]) => (
               <div key={l as string}>
-                <span className="block font-display text-5xl leading-none tabular-nums">{(v as number).toLocaleString("en-IN")}</span>
+                <span className="block font-display text-4xl leading-none tabular-nums sm:text-5xl">{(v as number).toLocaleString("en-IN")}</span>
                 <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">{l}</span>
               </div>
             ))}
@@ -77,7 +77,7 @@ export default function InstagramDashboard() {
           {stats.map(([label, value, tone]) => (
             <div key={label} className={`brut-hover border-[3px] border-ink p-5 shadow-brut ${tone}`}>
               <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]">{label}</span>
-              <p className="mt-2 font-display text-6xl leading-none tabular-nums">{Number(value).toLocaleString("en-IN")}</p>
+              <p className="mt-2 font-display text-5xl leading-none tabular-nums sm:text-6xl">{Number(value).toLocaleString("en-IN")}</p>
             </div>
           ))}
         </div>
