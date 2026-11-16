@@ -39,7 +39,7 @@ jobs:
       run:
         working-directory: backend
     env:
-      DATABASE_URL: sqlite:///./ci.db
+      MONGODB_URI: mongodb://localhost:27017
       JWT_SECRET: ci-secret
       ADMIN_EMAIL: ci@example.com
       ADMIN_PASSWORD: ci-password
@@ -53,9 +53,7 @@ jobs:
       - run: pip install -r requirements.txt pytest
       - name: Syntax check
         run: python -m compileall -q app
-      - name: Migrations apply cleanly
-        run: alembic upgrade head
-      - name: Smoke test (app boots, /health responds)
+      - name: Smoke test (app boots, /health responds; Mongo connects lazily)
         run: |
           python - <<'EOF'
           from fastapi.testclient import TestClient

@@ -26,11 +26,11 @@ One dashboard for organic Instagram growth, paid-ad performance and AI-generated
                                         │  /api/store      state  │
                                         └──────┬──────────┬───────┘
                                                │          │
-                                       Postgres (SQLAlchemy,      Meta Graph API
-                                       Alembic migrations)        Groq API (key pool)
+                                       MongoDB (pymongo)          Meta Graph API
+                                                                  Groq API (key pool)
 ```
 
-- **Backend** ([backend/](backend)): FastAPI, SQLAlchemy 2, Alembic, JWT auth. It holds all secrets and makes the Meta and AI calls.
+- **Backend** ([backend/](backend)): FastAPI, MongoDB (pymongo), JWT auth. It holds all secrets and makes the Meta and AI calls.
 - **Frontend** ([frontend/](frontend)): Next.js 14 (App Router), React 18, Tailwind. The scoring and chart logic is in [frontend/lib/analytics.ts](frontend/lib/analytics.ts).
 - **AI**: the Groq API (OpenAI-compatible) with up to **10 API keys**. Requests rotate across the keys. A key that hits a rate limit or errors is skipped for a while and the next key is used. See [claude_service.py](backend/app/services/claude_service.py). The prompts are in [backend/app/ai/modules.py](backend/app/ai/modules.py).
 
@@ -45,7 +45,7 @@ docker compose up --build
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8000 (health check at `/health`, docs at `/docs`)
-- Postgres runs in a container. Compose sets `DATABASE_URL` for you.
+- MongoDB runs in a container. Compose sets `MONGODB_URI` for you.
 
 ## Local development (without Docker)
 
@@ -55,7 +55,7 @@ cd backend
 python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env                                   # fill in values
-alembic upgrade head                                   # uses SQLite (dev.db) if DATABASE_URL is empty
+# needs a MongoDB: local (mongodb://localhost:27017 is the default) or Atlas via MONGODB_URI
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -73,7 +73,8 @@ npm run dev                                            # http://localhost:3000
 
 | Variable | Required | Description |
 |---|---|---|
-| `DATABASE_URL` | Prod | Postgres connection string. Falls back to local SQLite when empty. |
+| `MONGODB_URI` | Yes | MongoDB connection string (Atlas `mongodb+srv://...` or local). Defaults to `mongodb://localhost:27017`. |
+| `MONGODB_DB` | No | Database name, default `adcreative` |
 | `JWT_SECRET` | Yes | Long random string used to sign login tokens |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Yes | The single admin login |
 | `FRONTEND_URL` | Yes | Your frontend origin (for CORS), no trailing slash |
@@ -96,7 +97,7 @@ Only `NEXT_PUBLIC_*` values reach the browser. Never put API keys, tokens or pas
 
 | Part | Target | How |
 |---|---|---|
-| Backend | Render (Docker) | [render.yaml](render.yaml) defines the service and database. Set the variables above. Migrations run on start. |
+| Backend | Render (Docker) | [render.yaml](render.yaml) defines the service. Set the variables above (the database is MongoDB, e.g. Atlas, hosted outside Render). |
 | Frontend | Vercel | Import the repo, set the root directory to `frontend`, and add `NEXT_PUBLIC_API_URL`. |
 
 More detail is in [DEPLOYMENT.md](DEPLOYMENT.md) and [ARCHITECTURE.md](ARCHITECTURE.md).
@@ -105,7 +106,7 @@ More detail is in [DEPLOYMENT.md](DEPLOYMENT.md) and [ARCHITECTURE.md](ARCHITECT
 
 GitHub Actions in [.github/workflows](.github/workflows):
 
-- **CI** (`ci.yml`): on pull requests and pushes to `main`. Each side runs only when its folder changed. The backend job checks syntax, applies migrations, hits `/health` and builds the Docker image. The frontend job type-checks, runs `next build` and builds the Docker image.
+- **CI** (`ci.yml`): on pull requests and pushes to `main`. Each side runs only when its folder changed. The backend job checks syntax, hits `/health` and builds the Docker image. The frontend job type-checks, runs `next build` and builds the Docker image.
 - **CD** (`cd.yml`): after CI passes on `main`, it pushes the backend image to GitHub Container Registry. It deploys to Render and Vercel only if you add these repository secrets: `RENDER_DEPLOY_HOOK`, `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`.
 - Dependabot opens weekly update pull requests.
 
@@ -120,9 +121,8 @@ GitHub Actions in [.github/workflows](.github/workflows):
 │   │   ├── routes/            auth, ai, instagram, store
 │   │   ├── services/          Groq client (key rotation), Meta client
 │   │   ├── ai/modules.py      Prompt for each AI tool
-│   │   ├── models/            SQLAlchemy models
+│   │   ├── database/mongo.py  MongoDB client
 │   │   └── utils/ratelimit.py 20 AI requests/min per user
-│   ├── migrations/            Alembic
 │   └── Dockerfile
 ├── frontend/
 │   ├── app/                   Pages (login + 13 workspace pages)
@@ -161,5 +161,5 @@ These are known gaps, not planned behaviour:
 ## Security notes
 
 - Keep every secret on the backend. Rotate anything that has ever been pasted into chat, email or a commit.
-- `.env` files are git-ignored. Check `git status` before committing.
+- `.env` files are git-ignored. On Atlas, restrict network access and use a least-privilege database user. Check `git status` before committing.
 - AI output is advisory. Verify numbers and claims before acting on them.

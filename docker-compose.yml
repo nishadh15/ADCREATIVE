@@ -1,14 +1,10 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: adcreative
-      POSTGRES_PASSWORD: adcreative
-      POSTGRES_DB: adcreative
+  mongo:
+    image: mongo:7
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mongodata:/data/db
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U adcreative"]
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ping:1}).ok"]
       interval: 5s
       retries: 10
 
@@ -16,13 +12,13 @@ services:
     build: ./backend
     env_file: ./backend/.env          # GROQ_API_KEYS, META_*, JWT_SECRET, ADMIN_*
     environment:
-      DATABASE_URL: postgresql+psycopg://adcreative:adcreative@db:5432/adcreative
+      MONGODB_URI: mongodb://mongo:27017    # overrides .env; remove to use Atlas from .env instead
       FRONTEND_URL: http://localhost:3000
       PORT: "8000"
     ports:
       - "8000:8000"
     depends_on:
-      db:
+      mongo:
         condition: service_healthy
 
   frontend:
@@ -37,4 +33,4 @@ services:
       - backend
 
 volumes:
-  pgdata:
+  mongodata:
