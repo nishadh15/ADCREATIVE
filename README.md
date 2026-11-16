@@ -45,7 +45,7 @@ docker compose up --build
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8000 (health check at `/health`, docs at `/docs`)
-- MongoDB runs in a container. Compose sets `MONGODB_URI` for you.
+- MongoDB runs in a container. Compose sets `MONGO_DB_URI` for you.
 
 ## Local development (without Docker)
 
@@ -55,7 +55,7 @@ cd backend
 python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env                                   # fill in values
-# needs a MongoDB: local (mongodb://localhost:27017 is the default) or Atlas via MONGODB_URI
+# needs a MongoDB: local (mongodb://localhost:27017 is the default) or Atlas via MONGO_DB_URI
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -73,8 +73,8 @@ npm run dev                                            # http://localhost:3000
 
 | Variable | Required | Description |
 |---|---|---|
-| `MONGODB_URI` | Yes | MongoDB connection string (Atlas `mongodb+srv://...` or local). Defaults to `mongodb://localhost:27017`. |
-| `MONGODB_DB` | No | Database name, default `adcreative` |
+| `MONGO_DB_URI` | Yes | MongoDB connection string (Atlas `mongodb+srv://...` or local). Defaults to `mongodb://localhost:27017`. |
+| `MONGO_DB_NAME` | No | Database name, default `adcreative` |
 | `JWT_SECRET` | Yes | Long random string used to sign login tokens |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Yes | The single admin login |
 | `FRONTEND_URL` | Yes | Your frontend origin (for CORS), no trailing slash |

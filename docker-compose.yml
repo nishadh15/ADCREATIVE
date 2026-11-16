@@ -12,7 +12,7 @@ services:
     build: ./backend
     env_file: ./backend/.env          # GROQ_API_KEYS, META_*, JWT_SECRET, ADMIN_*
     environment:
-      MONGODB_URI: mongodb://mongo:27017    # overrides .env; remove to use Atlas from .env instead
+      MONGO_DB_URI: mongodb://mongo:27017    # overrides .env; remove to use Atlas from .env instead
       FRONTEND_URL: http://localhost:3000
       PORT: "8000"
     ports:

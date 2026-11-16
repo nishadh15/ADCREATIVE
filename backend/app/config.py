@@ -2,8 +2,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
-    mongodb_uri: str = ""            # e.g. mongodb+srv://user:pass@cluster.mongodb.net
-    mongodb_db: str = "adcreative"
+    mongo_db_uri: str = ""            # e.g. mongodb+srv://user:pass@cluster.mongodb.net
+    mongo_db_name: str = "adcreative"
     # Groq: either GROQ_API_KEYS="k1,k2,..." or GROQ_API_KEY_1 .. GROQ_API_KEY_10
     groq_api_keys: str = ""
     groq_api_key_1: str = ""

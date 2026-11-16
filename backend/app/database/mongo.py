@@ -7,8 +7,8 @@ from ..config import settings
 
 @lru_cache(maxsize=1)
 def _client() -> MongoClient:
-    return MongoClient(settings.mongodb_uri or "mongodb://localhost:27017",
+    return MongoClient(settings.mongo_db_uri or "mongodb://localhost:27017",
                        serverSelectionTimeoutMS=5000, tz_aware=True)
 
 def get_db() -> Database:
-    return _client()[settings.mongodb_db]
+    return _client()[settings.mongo_db_name]

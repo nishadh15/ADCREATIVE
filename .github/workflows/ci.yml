@@ -39,7 +39,7 @@ jobs:
       run:
         working-directory: backend
     env:
-      MONGODB_URI: mongodb://localhost:27017
+      MONGO_DB_URI: mongodb://localhost:27017
       JWT_SECRET: ci-secret
       ADMIN_EMAIL: ci@example.com
       ADMIN_PASSWORD: ci-password

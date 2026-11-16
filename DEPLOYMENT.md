@@ -5,7 +5,7 @@ Copy `backend/` and `frontend/` over your repo, commit, push. Vercel and Render 
 The backend stores workspace data in MongoDB (collection `kv_store`, created on first write; no migrations).
 
 ## 2. Render backend env vars
-MONGODB_URI (+ optional MONGODB_DB), GROQ_API_KEYS (comma-separated), JWT_SECRET (long random), ADMIN_EMAIL, ADMIN_PASSWORD, FRONTEND_URL (exact Vercel URL, no trailing slash),
+MONGO_DB_URI (+ optional MONGO_DB_NAME), GROQ_API_KEYS (comma-separated), JWT_SECRET (long random), ADMIN_EMAIL, ADMIN_PASSWORD, FRONTEND_URL (exact Vercel URL, no trailing slash),
 META_ACCESS_TOKEN + META_IG_USER_ID (Instagram Business/Creator account id; token needs instagram_basic, instagram_manage_insights, pages_show_list), META_APP_ID, META_APP_SECRET.
 
 ## 3. Vercel

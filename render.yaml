@@ -5,9 +5,9 @@ services:
     rootDir: backend
     healthCheckPath: /health
     envVars:
-      - key: MONGODB_URI
+      - key: MONGO_DB_URI
         sync: false
-      - key: MONGODB_DB
+      - key: MONGO_DB_NAME
         value: adcreative
       - key: ADMIN_EMAIL
         sync: false
