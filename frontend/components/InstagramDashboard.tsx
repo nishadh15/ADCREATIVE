@@ -9,15 +9,6 @@ interface Overview {
   profile_picture_url?: string;
 }
 
-interface Post {
-  id: string;
-  caption?: string;
-  permalink: string;
-  like_count?: number;
-  comments_count?: number;
-  timestamp: string;
-}
-
 const Shell = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
   <div className={`rounded-[2rem] border border-white/10 bg-white/[0.03] p-1.5 ${className}`}>
     <div className="h-full rounded-[calc(2rem-0.375rem)] bg-[#0a0a0a]/80 shadow-core">{children}</div>
@@ -27,7 +18,6 @@ const Shell = ({ children, className = "" }: { children: React.ReactNode; classN
 export default function InstagramDashboard() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [insights, setInsights] = useState<any>(null);
-  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -35,15 +25,13 @@ export default function InstagramDashboard() {
     async function fetchInstagramData() {
       try {
         setLoading(true);
-        const [overviewData, insightsData, postsData] = await Promise.all([
+        const [overviewData, insightsData] = await Promise.all([
           api('/api/instagram/overview'),
           api('/api/instagram/insights'),
-          api('/api/instagram/posts'),
         ]);
 
         setOverview(overviewData);
         setInsights(insightsData);
-        setPosts(postsData.data || []);
       } catch (err: any) {
         setError(err.message || 'Error fetching data');
       } finally {
@@ -105,27 +93,6 @@ export default function InstagramDashboard() {
           ))}
         </div>
       )}
-
-      <div className="pt-4">
-        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">Recent posts</span>
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {posts.map((post) => (
-            <a key={post.id} href={post.permalink} target="_blank" rel="noopener noreferrer" className="group block">
-              <Shell className="transition-transform duration-700 ease-fluid group-hover:-translate-y-1">
-                <div className="p-5">
-                  <div className="mb-3 flex items-center gap-4 text-sm font-medium tabular-nums">
-                    <span className="text-accent">♥ {post.like_count ?? 0}</span>
-                    <span className="text-violet">● {post.comments_count ?? 0}</span>
-                    <span className="ml-auto grid h-7 w-7 place-items-center rounded-full bg-white/10 text-xs transition-transform duration-700 ease-fluid group-hover:-translate-y-px group-hover:translate-x-0.5">↗</span>
-                  </div>
-                  <p className="line-clamp-2 text-xs leading-relaxed text-neutral-400">{post.caption || 'No caption provided.'}</p>
-                  <span className="mt-4 block text-[10px] uppercase tracking-[0.15em] text-neutral-600">{new Date(post.timestamp).toLocaleDateString()}</span>
-                </div>
-              </Shell>
-            </a>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

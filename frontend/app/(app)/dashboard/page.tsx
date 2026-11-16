@@ -7,6 +7,7 @@ import { Bars, Card, Line } from "@/components/Charts";
 import Badge from "@/components/Badge";
 import JsonView from "@/components/JsonView";
 import InstagramDashboard from "@/components/InstagramDashboard";
+import PostHighlights from "@/components/PostHighlights";
 
 const B = (s: string) => (s === "none" ? null : <Badge kind={s as any} />);
 
@@ -70,6 +71,8 @@ export default function Dashboard() {
 
       {/* Live Instagram Meta Graph Analytics Section */}
       <InstagramDashboard />
+
+      <PostHighlights posts={d.posts} />
 
       {none && (
         <p className="rounded-lg border border-line bg-panel p-4 text-sm text-neutral-300">
