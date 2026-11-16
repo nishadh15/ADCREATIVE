@@ -21,6 +21,8 @@ _rr = itertools.count()
 def _key_order(model: str) -> list[str]:
     keys = settings.groq_keys
     if not keys:
+        if settings.groq_keys_invalid:
+            raise RuntimeError("Groq API keys contain invalid (non-ASCII) characters; re-paste GROQ_API_KEYS on the backend")
         raise RuntimeError("No Groq API keys set (GROQ_API_KEYS or GROQ_API_KEY_1..10)")
     with _lock:
         start = next(_rr) % len(keys)
@@ -78,6 +80,10 @@ def complete(system: str, messages: list, max_tokens: int, json_mode: bool = Fal
         for key in _key_order(model):
             try:
                 r = httpx.post(URL, json=payload, headers={"Authorization": f"Bearer {key}"}, timeout=120)
+            except UnicodeError:
+                last = f"{model}: key contains invalid characters"
+                _mark(key, model, 3600)
+                continue
             except httpx.HTTPError as e:
                 last = f"{model}: {type(e).__name__}"
                 _mark(key, model, 15)
@@ -132,7 +138,7 @@ def complete(system: str, messages: list, max_tokens: int, json_mode: bool = Fal
 def diagnose() -> dict:
     """Tiny live test of every configured model, so setup problems are visible (no key material returned)."""
     keys = settings.groq_keys
-    out = {"keys_configured": len(keys), "models": []}
+    out = {"keys_configured": len(keys), "keys_invalid_skipped": settings.groq_keys_invalid, "models": []}
     if not keys:
         return out
     for model in settings.groq_model_list:

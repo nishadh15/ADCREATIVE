@@ -40,15 +40,26 @@ class Settings(BaseSettings):
     def meta_configured(self) -> bool:
         return bool(self.meta_access_token and self.ig_user_id)
 
-    @property
-    def groq_keys(self) -> list[str]:
-        raw = [k.strip() for k in self.groq_api_keys.split(",")]
-        raw += [getattr(self, f"groq_api_key_{i}").strip() for i in range(1, 11)]
-        seen, out = set(), []
+    def _raw_groq_keys(self) -> list[str]:
+        import re
+        raw = re.split(r"[,;\s]+", self.groq_api_keys or "")
+        raw += [getattr(self, f"groq_api_key_{i}") for i in range(1, 11)]
+        out, seen = [], set()
         for k in raw:
+            k = (k or "").strip().strip("\"'[]()<>")
             if k and k not in seen:
                 seen.add(k); out.append(k)
         return out
+
+    @property
+    def groq_keys(self) -> list[str]:
+        """Usable keys only: printable ASCII (HTTP headers can't carry anything else)."""
+        return [k for k in self._raw_groq_keys() if k.isascii() and k.isprintable()]
+
+    @property
+    def groq_keys_invalid(self) -> int:
+        """How many configured keys were dropped for containing non-ASCII / hidden characters."""
+        return len(self._raw_groq_keys()) - len(self.groq_keys)
 
     @property
     def groq_model_list(self) -> list[str]:

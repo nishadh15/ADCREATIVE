@@ -16,7 +16,7 @@ export default function Settings() {
       <section className="rounded-xl border border-line bg-panel p-5 text-sm"><h2 className="mb-1 font-semibold">AI connection test</h2>
         <p className="mb-3 text-xs text-neutral-500">Sends a tiny request to each configured Groq model and shows exactly what works or fails.</p>
         <button className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-ink disabled:opacity-50" disabled={tb} onClick={async () => { setTb(true); setT(null); try { setT(await api("/api/ai/diagnose")); } catch (e: any) { setT({ error: e.message }); } finally { setTb(false); } }}>{tb ? "Testing…" : "Test AI"}</button>
-        {t && (t.error ? <p className="mt-3 text-red-300">{t.error}</p> : <div className="mt-3 space-y-1 text-xs"><p className="text-neutral-400">Keys configured: <b>{t.keys_configured}</b></p>
+        {t && (t.error ? <p className="mt-3 text-red-300">{t.error}</p> : <div className="mt-3 space-y-1 text-xs"><p className="text-neutral-400">Keys configured: <b>{t.keys_configured}</b>{t.keys_invalid_skipped > 0 && <span className="text-red-300"> · {t.keys_invalid_skipped} skipped (contain invalid characters, re-paste them)</span>}</p>
           {t.models.map((x: any) => <p key={x.model} className={x.ok ? "text-emerald-300" : "text-red-300"}>{x.ok ? "OK" : "FAIL"} · {x.model}{x.ok ? ` · replied "${x.reply}" (${x.finish_reason})` : ` · ${x.status ?? ""} ${x.error}`}</p>)}</div>)}
       </section>
       <section className="rounded-xl border border-line bg-panel p-5"><h2 className="mb-1 font-semibold">Approval queue</h2>

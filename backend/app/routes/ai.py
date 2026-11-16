@@ -44,6 +44,8 @@ def run(body: RunIn, user: str = Depends(current_user)):
                     raise
     except RuntimeError as e:
         raise HTTPException(503, str(e))
+    except UnicodeError:
+        raise HTTPException(503, "A Groq API key contains invalid characters; re-paste GROQ_API_KEYS on the backend")
     except ValueError as e:
         log.warning("ai ValueError: %s", e)
         raise HTTPException(502, f"AI returned an unreadable response: {str(e)[:300]}")
