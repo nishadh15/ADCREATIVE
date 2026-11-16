@@ -17,7 +17,7 @@ export default function AIPage({ title, desc, module, fields, note, action, cta 
     try { const r = await api("/api/ai/run", { method: "POST", body: JSON.stringify({ module, input: v, context: buildContext(d), image: img }) }); setRes(r.result); }
     catch (e: any) { setErr(e.message); } finally { setBusy(false); }
   }
-  const cls = "w-full rounded-lg border border-line bg-ink px-3 py-2 text-sm";
+  const cls = "w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm";
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold">{title}</h1><p className="text-sm text-neutral-400">{desc}</p></div>

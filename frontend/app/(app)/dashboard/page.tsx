@@ -52,9 +52,9 @@ export default function Dashboard() {
   return (
     <div className="space-y-8">
       <div>
-        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">Overview</span>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight md:text-5xl">Your marketing, <span className="bg-gradient-to-r from-accent to-violet bg-clip-text text-transparent">at a glance.</span></h1>
-        <p className="mt-3 max-w-xl text-sm text-neutral-500">Every number is labelled by where it came from. Empty means no data loaded.</p>
+        <span className="tag">Overview</span>
+        <h1 className="mt-4">Your marketing,<br /><span className="hl">at a glance.</span></h1>
+        <p className="mt-4 max-w-xl text-sm font-semibold text-neutral-500">Every number is labelled by where it came from. Empty means no data loaded.</p>
       </div>
 
       {/* Live Instagram Meta Graph Analytics Section */}
@@ -70,14 +70,12 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map(([t, v, s]) => (
-          <div key={t} className="rounded-[1.75rem] border border-white/10 bg-white/[0.03] p-1.5 transition-transform duration-700 ease-fluid hover:-translate-y-0.5">
-            <div className="rounded-[calc(1.75rem-0.375rem)] bg-[#0a0a0a]/80 p-4 shadow-core">
-              <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.18em] text-neutral-500">
-                <span>{t}</span>
-                {B(s)}
-              </div>
-              <div className={`mt-3 text-3xl font-semibold tabular-nums tracking-tight ${v ? "" : "text-neutral-700"}`}>{v ?? "—"}</div>
+          <div key={t} className="brut-hover border-[3px] border-ink bg-bone p-4 shadow-brutsm">
+            <div className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">
+              <span>{t}</span>
+              {B(s)}
             </div>
+            <div className={`mt-3 font-display text-5xl leading-none tabular-nums ${v ? "" : "text-neutral-700"}`}>{v ?? "—"}</div>
           </div>
         ))}
       </div>
@@ -91,8 +89,8 @@ export default function Dashboard() {
         <Card title="Marketing Health Score" badge={score ? <span className="text-[10px] text-neutral-500">rule-based</span> : null}>
           {score ? (
             <div>
-              <div className="text-3xl font-bold text-accent">{score.score}<span className="text-sm text-neutral-500">/100</span></div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/[0.06]"><div className="h-full origin-left animate-grow rounded-full bg-gradient-to-r from-accent to-violet" style={{ width: `${score.score}%` }} /></div>
+              <div className="font-display text-6xl leading-none">{score.score}<span className="text-sm text-neutral-500">/100</span></div>
+              <div className="mt-2 h-4 border-[3px] border-ink bg-bone"><div className="h-full origin-left animate-grow border-r-[3px] border-ink bg-accent" style={{ width: `${score.score}%` }} /></div>
               <ul className="mt-2 space-y-1 text-xs">
                 {score.parts.map((p: any) => (
                   <li key={p.name} className={p.score >= 60 ? "text-emerald-300" : "text-red-300"}>

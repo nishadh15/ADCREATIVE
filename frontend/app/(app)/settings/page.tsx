@@ -22,7 +22,7 @@ export default function Settings() {
       <section className="rounded-xl border border-line bg-panel p-5"><h2 className="mb-1 font-semibold">Approval queue</h2>
         <p className="mb-4 text-xs text-neutral-500">Approving records your decision. Publishing and ad-spend execution adapters are NOT wired yet, so approved items are not sent to Instagram/Meta automatically; post them manually or via a later integration.</p>
         {d.actions.length === 0 && <p className="text-sm text-neutral-500">Nothing queued.</p>}
-        <div className="space-y-3">{d.actions.map((a: any) => (<div key={a.id} className="rounded-lg border border-line bg-ink p-3 text-sm"><div className="flex items-center gap-3"><b>{a.action}</b><span className="text-xs text-neutral-500">{new Date(a.created).toLocaleString()}</span>
+        <div className="space-y-3">{d.actions.map((a: any) => (<div key={a.id} className="rounded-lg border border-line bg-paper p-3 text-sm"><div className="flex items-center gap-3"><b>{a.action}</b><span className="text-xs text-neutral-500">{new Date(a.created).toLocaleString()}</span>
           <span className={`ml-auto text-xs ${a.status === "approved" ? "text-emerald-300" : a.status === "rejected" ? "text-red-300" : "text-amber-300"}`}>{a.status.toUpperCase()}</span></div>
           <p className="mt-1 text-xs text-neutral-400">What will happen: {a.what_will_happen} · Cost: ₹{a.cost ?? 0} · Target: {a.target} · Schedule: {a.schedule} · Requires approval: yes</p>
           <div className="mt-2 flex gap-2"><button className="text-xs underline" onClick={() => setOpen(a)}>View content</button>

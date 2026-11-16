@@ -20,14 +20,14 @@ export default function Calendar() {
   return (
     <div className="space-y-6">
       <div><h1 className="text-2xl font-bold">Content Calendar</h1><p className="text-sm text-neutral-400">Drag a card to another day to reschedule. Items are drafts: nothing is published from here.</p></div>
-      <div className="flex items-center gap-3"><select className="rounded-lg border border-line bg-ink px-3 py-2 text-sm" value={days} onChange={(e) => setDays(+e.target.value)}>{[7, 14, 30].map((n) => <option key={n} value={n}>{n} days</option>)}</select>
+      <div className="flex items-center gap-3"><select className="rounded-lg border border-line bg-paper px-3 py-2 text-sm" value={days} onChange={(e) => setDays(+e.target.value)}>{[7, 14, 30].map((n) => <option key={n} value={n}>{n} days</option>)}</select>
         <button onClick={gen} disabled={busy} className="rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-ink disabled:opacity-50">{busy ? "Planning…" : `Generate ${days}-day plan`}</button><Badge kind="ai" /></div>
       {err && <p className="text-sm text-red-300">{err}</p>}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{dates.map((dt) => (
         <div key={dt} onDragOver={(e) => e.preventDefault()} onDrop={(e) => move(+e.dataTransfer.getData("id"), dt)} className="min-h-[120px] rounded-xl border border-line bg-panel p-3">
           <div className="mb-2 text-xs font-semibold text-neutral-400">{fmt(dt)}</div>
           {cal.filter((c) => c.date === dt).sort((a, b) => (a.time || "").localeCompare(b.time || "")).map((c) => (
-            <div key={c.id} draggable onDragStart={(e) => e.dataTransfer.setData("id", String(c.id))} onClick={() => setOpen(c)} className="mb-2 cursor-grab rounded-lg border border-line bg-ink p-2 text-xs">
+            <div key={c.id} draggable onDragStart={(e) => e.dataTransfer.setData("id", String(c.id))} onClick={() => setOpen(c)} className="mb-2 cursor-grab rounded-lg border border-line bg-paper p-2 text-xs">
               <div className="flex justify-between"><b className="text-accent">{c.time} · {c.content_type}</b><span className="text-neutral-500">{c.objective}</span></div><div className="mt-1 text-neutral-300">{c.hook || c.idea}</div></div>))}</div>))}</div>
       {open && (<div className="fixed inset-0 z-40 grid place-items-center bg-black/70 p-4" onClick={() => setOpen(null)}><div className="max-h-[85vh] w-full max-w-lg overflow-auto rounded-2xl border border-line bg-panel p-6 text-sm" onClick={(e) => e.stopPropagation()}>
         <h3 className="font-semibold">{open.content_type} · {open.date} {open.time}</h3>
