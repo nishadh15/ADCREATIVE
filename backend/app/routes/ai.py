@@ -1,5 +1,6 @@
 import json, logging
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from ..ai.modules import COMMON, M, CHAT
 from ..services import claude_service as cs
@@ -58,15 +59,40 @@ def diagnose(user: str = Depends(current_user)):
     """Live per-model test: shows which Groq models/keys actually work."""
     return cs.diagnose()
 
+def _chat_msgs(body: "ChatIn"):
+    """Lean prompt: last 6 turns, each capped, plus the (compact) data context on the new question only."""
+    hist = [{"role": m["role"], "content": str(m["content"])[:1500]} for m in body.history[-6:]
+            if m.get("role") in ("user", "assistant") and m.get("content")]
+    hist.append({"role": "user", "content": f"{_ctx(body.context)}\n\nQUESTION: {body.message[:2000]}"})
+    return hist
+
 @router.post("/chat")
 def chat(body: ChatIn, user: str = Depends(current_user)):
     check(user)
-    msgs = [m for m in body.history[-12:] if m.get("role") in ("user", "assistant") and m.get("content")]
-    msgs.append({"role": "user", "content": f"{_ctx(body.context)}\n\nQUESTION: {body.message}"})
     try:
-        return {"reply": cs.chat(CHAT, msgs)}
+        return {"reply": cs.chat(CHAT, _chat_msgs(body), max_tokens=1200)}
     except RuntimeError as e:
         raise HTTPException(503, str(e))
     except Exception as e:
         log.exception("ai error")
         raise HTTPException(502, f"AI provider error: {type(e).__name__}")
+
+@router.post("/chat/stream")
+def chat_stream(body: ChatIn, user: str = Depends(current_user)):
+    """Server-sent events: {"t": "<text chunk>"} ... then {"done": true} or {"error": "..."}."""
+    check(user)
+    msgs = _chat_msgs(body)
+
+    def events():
+        try:
+            for t in cs.stream_chat(CHAT, msgs, max_tokens=1200):
+                yield f"data: {json.dumps({'t': t})}\n\n"
+            yield 'data: {"done": true}\n\n'
+        except RuntimeError as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        except Exception as e:
+            log.exception("ai stream error")
+            yield f"data: {json.dumps({'error': 'AI provider error: ' + type(e).__name__})}\n\n"
+
+    return StreamingResponse(events(), media_type="text/event-stream",
+                             headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no", "Connection": "keep-alive"})

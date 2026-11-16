@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     groq_api_key_10: str = ""
     # Fallback chain, tried in order. Defaults are Groq free-tier models.
     groq_models: str = "openai/gpt-oss-120b,openai/gpt-oss-20b,qwen/qwen3.8-27b"
+    groq_chat_models: str = "openai/gpt-oss-20b,openai/gpt-oss-120b,qwen/qwen3.8-27b"   # chat: fast model first
     groq_vision_model: str = ""      # set a vision-capable model ID to enable image input
     groq_max_tokens: int = 3000      # cap per reply; free tier allows ~8K tokens/min per model
     groq_max_context_chars: int = 12000   # cap on data context sent per request
@@ -60,6 +61,10 @@ class Settings(BaseSettings):
     def groq_keys_invalid(self) -> int:
         """How many configured keys were dropped for containing non-ASCII / hidden characters."""
         return len(self._raw_groq_keys()) - len(self.groq_keys)
+
+    @property
+    def groq_chat_model_list(self) -> list[str]:
+        return [m.strip() for m in self.groq_chat_models.split(",") if m.strip()]
 
     @property
     def groq_model_list(self) -> list[str]:

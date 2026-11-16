@@ -161,6 +161,71 @@ def diagnose() -> dict:
             out["models"].append({"model": model, "ok": False, "error": type(e).__name__})
     return out
 
+def _cool(status: int, headers, key: str, model: str):
+    """Cooldown policy shared by the streaming path."""
+    if status == 429:
+        try:
+            wait = float(headers.get("retry-after", 30))
+        except ValueError:
+            wait = 30
+        _mark(key, model, min(max(wait, 5), 300))
+    elif status in (401, 403):
+        _mark(key, model, 3600)
+    elif status >= 500:
+        _mark(key, model, 15)
+    else:
+        _mark(key, model, 30)
+
+def stream_chat(system: str, messages: list, max_tokens: int = 1200):
+    """Yield reply text as it is generated. Fallback across models/keys happens only BEFORE the first token;
+    after that an interruption raises RuntimeError. Raises RuntimeError if no model/key could start."""
+    msgs = [{"role": "system", "content": system}] + [{"role": m["role"], "content": m["content"]} for m in messages]
+    models = settings.groq_chat_model_list or settings.groq_model_list or ["openai/gpt-oss-20b"]
+    max_tokens = min(max_tokens, settings.groq_max_tokens)
+    last = "unknown error"
+    for model in models:
+        payload = {"model": model, "messages": msgs, "max_tokens": max_tokens, "temperature": 0.5, "stream": True}
+        if model.startswith("openai/gpt-oss"):
+            payload["reasoning_effort"] = "low"
+        for key in _key_order(model):
+            started = False
+            try:
+                with httpx.stream("POST", URL, json=payload, headers={"Authorization": f"Bearer {key}"}, timeout=httpx.Timeout(60.0)) as r:
+                    if r.status_code != 200:
+                        r.read()
+                        last = f"{model}: HTTP {r.status_code}"
+                        log.warning("groq stream %s key ...%s -> %s", model, key[-4:], r.status_code)
+                        _cool(r.status_code, r.headers, key, model)
+                        if r.status_code in (400, 404, 413, 422):
+                            break                      # model-level problem: next model
+                        continue
+                    for line in r.iter_lines():
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if data == "[DONE]":
+                            return
+                        try:
+                            delta = json.loads(data)["choices"][0]["delta"].get("content")
+                        except Exception:
+                            continue
+                        if delta:
+                            started = True
+                            yield delta
+                    if started:
+                        return
+                    last = f"{model}: empty reply"
+                    break
+            except UnicodeError:
+                _mark(key, model, 3600)
+                last = f"{model}: key contains invalid characters"
+            except httpx.HTTPError as e:
+                if started:
+                    raise RuntimeError("The connection to the AI provider was interrupted") from e
+                last = f"{model}: {type(e).__name__}"
+                _mark(key, model, 15)
+    raise RuntimeError(f"All Groq keys/models failed or are rate-limited (last: {last}). Try again shortly.")
+
 def ask(system: str, user, search: bool = False, max_tokens: int = 4000) -> str:
     # Groq has no web_search tool; `search` is accepted but ignored.
     return complete(system, [{"role": "user", "content": user}], max_tokens)[0]

@@ -94,3 +94,29 @@ export function buildContext(d: any) {
     insights: insights(posts) && { avg_engagement: insights(posts)!.avg, by_type: insights(posts)!.byType, by_hook: insights(posts)!.byHook, by_product: insights(posts)!.byProduct, by_hour: insights(posts)!.byHour },
     learnings: learnings(posts), ads: adAgg(d.ads || []), calendar_upcoming: (d.calendar || []).slice(0, 10).map((c: any) => ({ date: c.date, type: c.content_type, hook: c.hook })) };
 }
+
+/** Compact context for chat: ~1/4 of the full report context, so replies start sooner and stay inside free-tier token limits. */
+export function buildChatContext(d: any) {
+  const posts: any[] = d.posts || [];
+  const slim = (p: any) => ({ date: p.date, type: String(p.type || "").replace(/_/g, " "), caption: String(p.caption || p.hook || "").replace(/\s+/g, " ").slice(0, 100),
+    likes: num(p.likes), comments: num(p.comments), views: num(p.views) || undefined, hashtags: (String(p.caption || "").match(/#\w+/g) || []).length });
+  const byDate = [...posts].sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  const ins = insights(posts);
+  const hasReach = posts.some((p) => num(p.reach) > 0);
+  const prof = d.profile ? { username: d.profile.username, followers: d.profile.followers_count, following: d.profile.follows_count, total_posts: d.profile.media_count } : null;
+  return {
+    instagram_profile: prof, data_source: d.src, today: new Date().toISOString().slice(0, 10),
+    latest_posts: byDate.slice(0, 6).map(slim),
+    top_by_likes: [...posts].sort((a, b) => num(b.likes) - num(a.likes)).slice(0, 4).map(slim),
+    top_reels_by_views: posts.filter((p) => /reel/i.test(p.type || "") && num(p.views) > 0).sort((a, b) => num(b.views) - num(a.views)).slice(0, 4).map(slim),
+    avg_engagement_pct: ins && hasReach ? +ins.avg.toFixed(2) : undefined,
+    avg_likes_by_format: groupAvgLikes(posts),
+    ads: adAgg(d.ads || []).slice(0, 4).map((a: any) => ({ campaign: a.campaign, spend: a.spend, revenue: a.revenue, roas: +a.roas.toFixed(2) })),
+    upcoming_calendar: (d.calendar || []).slice(0, 4).map((c: any) => ({ date: c.date, type: c.content_type, hook: c.hook })),
+  };
+}
+function groupAvgLikes(posts: any[]) {
+  const m: Record<string, number[]> = {};
+  posts.forEach((p) => { const k = String(p.type || "Post").replace(/_/g, " "); (m[k] = m[k] || []).push(num(p.likes)); });
+  return Object.fromEntries(Object.entries(m).map(([k, v]) => [k, Math.round(v.reduce((s, x) => s + x, 0) / v.length)]));
+}

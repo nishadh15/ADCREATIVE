@@ -46,3 +46,30 @@ export async function api<T = any>(path: string, init: RequestInit = {}): Promis
 
   return response.json();
 }
+/** Streams /api/ai/chat/stream (server-sent events). Throws code "no-stream" if the backend predates streaming. */
+export async function streamChat(body: any, o: { signal?: AbortSignal; onToken: (t: string) => void }): Promise<void> {
+  const token = getToken();
+  const res = await fetch(`${BASE_URL}/api/ai/chat/stream`, {
+    method: "POST", signal: o.signal,
+    headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401 && typeof window !== "undefined") { localStorage.removeItem("bh_token"); window.location.href = "/login"; }
+  if (res.status === 404 || res.status === 405) throw Object.assign(new Error("Streaming not available"), { code: "no-stream" });
+  if (!res.ok || !res.body) throw new Error((await res.json().catch(() => ({}))).detail || `Request failed (${res.status})`);
+  const reader = res.body.getReader(), dec = new TextDecoder();
+  let buf = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i: number;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const frame = buf.slice(0, i).trim(); buf = buf.slice(i + 2);
+      if (!frame.startsWith("data:")) continue;
+      const j = JSON.parse(frame.slice(5));
+      if (j.error) throw new Error(j.error);
+      if (j.t) o.onToken(j.t);
+    }
+  }
+}

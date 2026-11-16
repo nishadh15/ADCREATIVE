@@ -1,4 +1,5 @@
 "use client";
+import { memo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -10,7 +11,7 @@ function normalize(src: string) {
     .join("\n");
 }
 
-export default function Markdown({ children }: { children: string }) {
+function Markdown({ children }: { children: string }) {
   return (
     <div className="md-body text-[15px] font-medium leading-7 text-ink">
       <ReactMarkdown
@@ -44,3 +45,6 @@ export default function Markdown({ children }: { children: string }) {
     </div>
   );
 }
+
+// memoised: earlier messages must not re-parse on every streamed token
+export default memo(Markdown);
