@@ -1,5 +1,5 @@
 # ---- deps + build ----
-FROM node:20-alpine AS build
+FROM node:26-alpine AS build
 WORKDIR /app
 COPY package.json ./
 RUN npm install --no-audit --no-fund
@@ -10,7 +10,7 @@ ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 RUN npm run build
 
 # ---- runtime ----
-FROM node:20-alpine
+FROM node:26-alpine
 WORKDIR /app
 ENV NODE_ENV=production
 COPY --from=build /app/package.json ./
