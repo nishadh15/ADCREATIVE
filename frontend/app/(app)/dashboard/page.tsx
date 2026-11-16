@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { adAgg, buildContext, eng, insights, marketingScore, num, sum } from "@/lib/analytics";
@@ -16,6 +16,18 @@ export default function Dashboard() {
   const [err, setErr] = useState(""); 
   const [busy, setBusy] = useState(false);
   const { update } = useStore();
+  const [syncing, setSyncing] = useState(false);
+  const tried = useRef(false);
+
+  // First visit with an empty workspace: pull live posts from Instagram (read-only) so the dashboard isn't blank.
+  useEffect(() => {
+    if (!ready || tried.current || d.posts.length > 0 || d.src.posts === "user") return;
+    tried.current = true; setSyncing(true);
+    api("/api/instagram/sync")
+      .then((r: any) => update((o: any) => ({ posts: r.posts || [], src: { ...o.src, posts: "real" } })))
+      .catch(() => {})
+      .finally(() => setSyncing(false));
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const daily = d.daily, posts = d.posts, ag = adAgg(d.ads), ins = insights(posts), score = marketingScore(d);
   const has = (a: any[]) => a.length > 0, fmt = (n: number) => Math.round(n).toLocaleString("en-IN");
@@ -61,7 +73,7 @@ export default function Dashboard() {
 
       {none && (
         <p className="rounded-lg border border-line bg-panel p-4 text-sm text-neutral-300">
-          No local CSV data yet. Go to <b>Instagram Analytics</b> to upload a CSV, sync Instagram, or load demo data.
+          {syncing ? "Syncing your live Instagram posts…" : <>No data yet. Go to <b>Instagram Analytics</b> to upload a CSV, sync Instagram, or load demo data.</>}
         </p>
       )}
 

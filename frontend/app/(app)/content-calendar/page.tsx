@@ -7,10 +7,15 @@ import Badge from "@/components/Badge";
 import Modal from "@/components/Modal";
 export default function Calendar() {
   const { d, update, queueAction } = useStore(); const [days, setDays] = useState(7); const [err, setErr] = useState(""); const [busy, setBusy] = useState(false); const [del, setDel] = useState<any>(null); const [open, setOpen] = useState<any>(null);
-  const cal: any[] = d.calendar;
-  const dates = Array.from(new Set([...Array.from({ length: days }, (_, i) => { const x = new Date(); x.setDate(x.getDate() + i); return x.toISOString().slice(0, 10); }), ...cal.map((c) => c.date)])).sort();
-  async function gen() { setBusy(true); setErr(""); try { const r = await api("/api/ai/run", { method: "POST", body: JSON.stringify({ module: "content_calendar", input: { start_date: new Date().toISOString().slice(0, 10), days }, context: buildContext(d) }) });
-    update((o: any) => ({ calendar: [...o.calendar, ...(r.result.items || []).map((x: any, i: number) => ({ ...x, id: Date.now() + i, source: "ai" }))] })); } catch (e: any) { setErr(e.message); } finally { setBusy(false); } }
+  const iso = (x: Date) => `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, "0")}-${String(x.getDate()).padStart(2, "0")}`;   // local date, not UTC
+  const dayN = (n: number) => { const x = new Date(); x.setDate(x.getDate() + n); return iso(x); };
+  // The model sometimes returns malformed dates ("2026-11-192"): pull out a real YYYY-MM-DD or fall back to a sensible day.
+  const clean = (raw: any, fallback: string) => { const m = String(raw ?? "").match(/(\d{4})-(\d{2})-(\d{2})/); if (!m) return fallback; const t = new Date(+m[1], +m[2] - 1, +m[3]); return t.getMonth() === +m[2] - 1 && t.getDate() === +m[3] ? `${m[1]}-${m[2]}-${m[3]}` : fallback; };
+  const fmt = (dt: string) => { const [y, m, dd] = dt.split("-").map(Number); return new Date(y, m - 1, dd).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" }); };
+  const cal: any[] = d.calendar.map((c: any, i: number) => ({ ...c, date: clean(c.date, dayN(i % days)) }));
+  const dates = Array.from(new Set([...Array.from({ length: days }, (_, i) => dayN(i)), ...cal.map((c) => c.date)])).sort();
+  async function gen() { setBusy(true); setErr(""); try { const r = await api("/api/ai/run", { method: "POST", body: JSON.stringify({ module: "content_calendar", input: { start_date: dayN(0), days }, context: buildContext(d) }) });
+    update((o: any) => ({ calendar: [...o.calendar, ...(r.result.items || []).map((x: any, i: number) => ({ ...x, date: clean(x.date, dayN(i % days)), id: Date.now() + i, source: "ai" }))] })); } catch (e: any) { setErr(e.message); } finally { setBusy(false); } }
   const move = (id: number, date: string) => update((o: any) => ({ calendar: o.calendar.map((c: any) => (c.id === id ? { ...c, date } : c)) }));
   return (
     <div className="space-y-6">
@@ -20,7 +25,7 @@ export default function Calendar() {
       {err && <p className="text-sm text-red-300">{err}</p>}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">{dates.map((dt) => (
         <div key={dt} onDragOver={(e) => e.preventDefault()} onDrop={(e) => move(+e.dataTransfer.getData("id"), dt)} className="min-h-[120px] rounded-xl border border-line bg-panel p-3">
-          <div className="mb-2 text-xs font-semibold text-neutral-400">{new Date(dt).toDateString()}</div>
+          <div className="mb-2 text-xs font-semibold text-neutral-400">{fmt(dt)}</div>
           {cal.filter((c) => c.date === dt).sort((a, b) => (a.time || "").localeCompare(b.time || "")).map((c) => (
             <div key={c.id} draggable onDragStart={(e) => e.dataTransfer.setData("id", String(c.id))} onClick={() => setOpen(c)} className="mb-2 cursor-grab rounded-lg border border-line bg-ink p-2 text-xs">
               <div className="flex justify-between"><b className="text-accent">{c.time} · {c.content_type}</b><span className="text-neutral-500">{c.objective}</span></div><div className="mt-1 text-neutral-300">{c.hook || c.idea}</div></div>))}</div>))}</div>
