@@ -8,9 +8,9 @@ def sync_profile_and_media(limit: int = 30):
         raise RuntimeError("Instagram not configured: set META_ACCESS_TOKEN and META_IG_USER_ID")
     p = {"access_token": settings.meta_access_token}
     with httpx.Client(timeout=30) as c:
-        prof = c.get(f"{G}/{settings.meta_ig_user_id}", params={**p, "fields": "username,followers_count,follows_count,media_count"})
+        prof = c.get(f"{G}/{settings.ig_user_id}", params={**p, "fields": "username,followers_count,follows_count,media_count"})
         prof.raise_for_status()
-        media = c.get(f"{G}/{settings.meta_ig_user_id}/media", params={**p, "limit": limit,
+        media = c.get(f"{G}/{settings.ig_user_id}/media", params={**p, "limit": limit,
               "fields": "id,caption,media_type,media_product_type,timestamp,like_count,comments_count,permalink"})
         media.raise_for_status()
         posts = []

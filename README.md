@@ -82,8 +82,7 @@ npm run dev                                            # http://localhost:3000
 | `GROQ_MODEL` | No | Default `llama-3.3-70b-versatile` |
 | `GROQ_VISION_MODEL` | No | Default `meta-llama/llama-4-scout-17b-16e-instruct` |
 | `META_ACCESS_TOKEN` | For Instagram | Long-lived Meta token with `instagram_basic`, `instagram_manage_insights`, `pages_show_list` |
-| `META_IG_USER_ID` | For Instagram | Instagram Business/Creator account ID |
-| `INSTAGRAM_ACCOUNT_ID` | For Instagram | Same ID again. The live routes read this name (see limitations). |
+| `META_IG_USER_ID` | For Instagram | Instagram Business/Creator account ID (`INSTAGRAM_ACCOUNT_ID` also works) |
 
 ### Frontend (Vercel, or `frontend/.env.local`)
 
@@ -143,7 +142,7 @@ GitHub Actions in [.github/workflows](.github/workflows):
 | `POST /api/ai/run` | Yes | Run an AI module with your data context |
 | `POST /api/ai/chat` | Yes | Marketing-agent chat |
 | `GET/PUT /api/store/{key}` | Yes | Saved workspace data |
-| `GET /api/instagram/overview`, `/insights`, `/posts` | **No** (see limitations) | Live Meta data |
+| `GET /api/instagram/overview`, `/insights`, `/posts`, `/sync` | Yes | Live Meta data |
 | `GET /health` | No | Health check |
 
 ## Current limitations
@@ -152,8 +151,6 @@ These are known gaps, not planned behaviour:
 
 1. **Live data is not in the score or brief.** The health score and AI brief use CSV/demo data. The live Instagram feed only drives the dashboard widget.
 2. **No Meta Ads API.** Ad spend, revenue and ROAS come from an uploaded CSV with the columns `date,campaign,spend,impressions,clicks,conversions,revenue`.
-3. **Variable name mismatch.** The live Instagram routes read `INSTAGRAM_ACCOUNT_ID`, while the rest of the app uses `META_IG_USER_ID`. Set both until this is unified.
-4. **Instagram routes are unauthenticated.** Anyone with the backend URL can read your account data.
 5. **No web search.** Groq has no web-search tool, so Trend Radar and Competitor Intelligence answer from the model's own knowledge and may be out of date.
 6. **Approvals don't execute.** Approving an item records the decision but does not publish or spend.
 7. **No automated tests yet.** CI only runs build and smoke checks.

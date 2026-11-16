@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     meta_app_secret: str = ""
     meta_access_token: str = ""
     meta_ig_user_id: str = ""
+    instagram_account_id: str = ""   # alias of META_IG_USER_ID; either one works
     meta_redirect_uri: str = ""
     jwt_secret: str = ""
     admin_email: str = ""
@@ -29,8 +30,12 @@ class Settings(BaseSettings):
     frontend_url: str = "http://localhost:3000"
 
     @property
+    def ig_user_id(self) -> str:
+        return self.meta_ig_user_id or self.instagram_account_id
+
+    @property
     def meta_configured(self) -> bool:
-        return bool(self.meta_access_token and self.meta_ig_user_id)
+        return bool(self.meta_access_token and self.ig_user_id)
 
     @property
     def groq_keys(self) -> list[str]:

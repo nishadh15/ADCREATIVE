@@ -41,8 +41,8 @@ def run(body: RunIn, user: str = Depends(current_user)):
     except ValueError:
         raise HTTPException(502, "AI returned an unreadable response, try again")
     except Exception as e:
-        log.exception("claude error")
-        raise HTTPException(502, f"Claude API error: {type(e).__name__}")
+        log.exception("ai error")
+        raise HTTPException(502, f"AI provider error: {type(e).__name__}")
 
 @router.post("/chat")
 def chat(body: ChatIn, user: str = Depends(current_user)):
@@ -54,5 +54,5 @@ def chat(body: ChatIn, user: str = Depends(current_user)):
     except RuntimeError as e:
         raise HTTPException(503, str(e))
     except Exception as e:
-        log.exception("claude error")
-        raise HTTPException(502, f"Claude API error: {type(e).__name__}")
+        log.exception("ai error")
+        raise HTTPException(502, f"AI provider error: {type(e).__name__}")

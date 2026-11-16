@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://adcreative-back.onrender.com';
+import { api } from '@/lib/api';
 
 interface Overview {
   username: string;
@@ -36,19 +35,11 @@ export default function InstagramDashboard() {
     async function fetchInstagramData() {
       try {
         setLoading(true);
-        const [overviewRes, insightsRes, postsRes] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/instagram/overview`),
-          fetch(`${BACKEND_URL}/api/instagram/insights`),
-          fetch(`${BACKEND_URL}/api/instagram/posts`)
+        const [overviewData, insightsData, postsData] = await Promise.all([
+          api('/api/instagram/overview'),
+          api('/api/instagram/insights'),
+          api('/api/instagram/posts'),
         ]);
-
-        if (!overviewRes.ok || !insightsRes.ok || !postsRes.ok) {
-          throw new Error('Failed to load Instagram analytics');
-        }
-
-        const overviewData = await overviewRes.json();
-        const insightsData = await insightsRes.json();
-        const postsData = await postsRes.json();
 
         setOverview(overviewData);
         setInsights(insightsData);
