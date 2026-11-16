@@ -1,37 +1,32 @@
 import { useId } from "react";
 
-export function Line({ data, color = "#FF8A4C" }: { data: number[]; color?: string }) {
+export function Line({ data, color = "#0A0A0A" }: { data: number[]; color?: string }) {
   const id = useId().replace(/:/g, "");
-  if (data.length < 2) return <div className="py-6 text-xs text-neutral-500">Not enough data</div>;
+  if (data.length < 2) return <div className="py-6 font-mono text-xs text-neutral-500">// not enough data</div>;
   const w = 300, h = 96, mn = Math.min(...data), mx = Math.max(...data), r = mx - mn || 1;
   const xy = data.map((v, i) => [(i / (data.length - 1)) * w, h - 8 - ((v - mn) / r) * (h - 18)] as const);
-  // smooth path (midpoint quadratic curves)
-  let d = `M${xy[0][0]},${xy[0][1]}`;
-  for (let i = 1; i < xy.length; i++) { const [px, py] = xy[i - 1], [cx, cy] = xy[i]; d += ` Q${px},${py} ${(px + cx) / 2},${(py + cy) / 2}`; }
-  d += ` T${xy[xy.length - 1][0]},${xy[xy.length - 1][1]}`;
+  const d = xy.map(([x, y], i) => `${i ? "L" : "M"}${x},${y}`).join(" ");   // hard angles, no smoothing
   const last = xy[xy.length - 1];
   return (
     <svg viewBox={`0 0 ${w} ${h}`} className="h-24 w-full overflow-visible" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id={`a${id}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.35" /><stop offset="100%" stopColor={color} stopOpacity="0" /></linearGradient>
-      </defs>
-      <path d={`${d} L${w},${h} L0,${h} Z`} fill={`url(#a${id})`} />
-      <path d={d} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" vectorEffect="non-scaling-stroke" style={{ filter: `drop-shadow(0 0 6px ${color}99)` }} />
-      <circle cx={last[0]} cy={last[1]} r="3.5" fill={color} />
+      <defs><pattern id={`h${id}`} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="3" height="6" fill="#FF5A14" /></pattern></defs>
+      <path d={`${d} L${w},${h} L0,${h} Z`} fill={`url(#h${id})`} opacity="0.55" />
+      <path d={d} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="miter" vectorEffect="non-scaling-stroke" />
+      <rect x={last[0] - 5} y={last[1] - 5} width="10" height="10" fill="#C6FF00" stroke="#0A0A0A" strokeWidth="2.5" vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
 
 export function Bars({ items, fmt = (v: number) => v.toFixed(1) }: { items: { key: string; value: number }[]; fmt?: (v: number) => string }) {
-  if (!items.length) return <div className="py-6 text-xs text-neutral-500">No data</div>;
+  if (!items.length) return <div className="py-6 font-mono text-xs text-neutral-500">// no data</div>;
   const mx = Math.max(...items.map((i) => i.value), 0.0001);
   return (
     <div className="space-y-3.5">
       {items.map((i, n) => (
         <div key={i.key} className="text-xs">
-          <div className="mb-1.5 flex justify-between text-neutral-400"><span>{i.key}</span><span className="tabular-nums text-neutral-200">{fmt(i.value)}</span></div>
-          <div className="h-1.5 overflow-hidden rounded-full bg-white/[0.06]">
-            <div className="h-full origin-left animate-grow rounded-full bg-gradient-to-r from-accent to-violet" style={{ width: `${(i.value / mx) * 100}%`, animationDelay: `${n * 90}ms` }} />
+          <div className="mb-1 flex justify-between font-bold uppercase tracking-wide"><span>{i.key}</span><span className="font-mono tabular-nums">{fmt(i.value)}</span></div>
+          <div className="h-5 border-[3px] border-ink bg-bone">
+            <div className="h-full origin-left animate-grow border-r-[3px] border-ink bg-accent" style={{ width: `${(i.value / mx) * 100}%`, animationDelay: `${n * 80}ms` }} />
           </div>
         </div>
       ))}
@@ -39,14 +34,11 @@ export function Bars({ items, fmt = (v: number) => v.toFixed(1) }: { items: { ke
   );
 }
 
-/** Double-bezel card: machined outer shell + inner glass core. */
+/** Brutalist card: hard border + offset shadow, with a black title tab. */
 export const Card = ({ title, badge, children }: { title: string; badge?: React.ReactNode; children: React.ReactNode }) => (
-  <div className="rounded-[2rem] border border-white/10 bg-white/[0.03] p-1.5 transition-transform duration-700 ease-fluid hover:-translate-y-0.5">
-    <div className="h-full rounded-[calc(2rem-0.375rem)] bg-[#0a0a0a]/80 p-5 shadow-core">
-      <div className="mb-4 flex items-center justify-between">
-        <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-500">{title}</span>{badge}
-      </div>
-      {children}
-    </div>
+  <div className="relative border-[3px] border-ink bg-bone p-5 pt-7 shadow-brut">
+    <span className="tag absolute -top-3 left-4">{title}</span>
+    {badge && <span className="absolute -top-3 right-4">{badge}</span>}
+    {children}
   </div>
 );

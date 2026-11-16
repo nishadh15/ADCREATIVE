@@ -84,9 +84,13 @@ export function learnings(posts: any[]) {
 }
 export function buildContext(d: any) {
   const posts = d.posts || [], daily = d.daily || [];
-  return { data_source: d.src, today: new Date().toISOString().slice(0, 10), marketing_score: marketingScore(d),
+  const prof = d.profile ? { source: "real (Instagram Graph API)", username: d.profile.username, followers: d.profile.followers_count, following: d.profile.follows_count, total_posts: d.profile.media_count } : null;
+  const newest = [...posts].sort((a: any, b: any) => String(b.date || "").localeCompare(String(a.date || ""))).slice(0, 15);
+  return { instagram_profile: prof, data_source: d.src, today: new Date().toISOString().slice(0, 10), marketing_score: marketingScore(d),
     account: { first_day: daily[0], latest_day: daily[daily.length - 1], total_reach: sum(daily, "reach") },
-    recent_posts: posts.slice(-20).map((p: any) => ({ date: p.date, type: p.type, product: p.product, hook: p.hook, hook_type: hookType(p.hook), reach: num(p.reach), engagement_pct: +eng(p).toFixed(2), views: num(p.views) })),
+    recent_posts: newest.map((p: any) => ({ date: p.date, type: p.type, caption: String(p.caption || p.hook || "").replace(/\s+/g, " ").slice(0, 140), hashtags: (String(p.caption || "").match(/#\w+/g) || []).length,
+      likes: num(p.likes), comments: num(p.comments), saves: num(p.saves), shares: num(p.shares), views: num(p.views), reach: num(p.reach) || undefined,
+      engagement_pct: num(p.reach) ? +eng(p).toFixed(2) : undefined, product: p.product, hook_type: hookType(p.hook) })),
     insights: insights(posts) && { avg_engagement: insights(posts)!.avg, by_type: insights(posts)!.byType, by_hook: insights(posts)!.byHook, by_product: insights(posts)!.byProduct, by_hour: insights(posts)!.byHour },
     learnings: learnings(posts), ads: adAgg(d.ads || []), calendar_upcoming: (d.calendar || []).slice(0, 10).map((c: any) => ({ date: c.date, type: c.content_type, hook: c.hook })) };
 }

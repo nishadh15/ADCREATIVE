@@ -43,7 +43,7 @@ function CopyBtn({ text }: { text: string }) {
 }
 
 export default function Agent() {
-  const { d } = useStore();
+  const { d, syncing } = useStore();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [t, setT] = useState("");
   const [busy, setBusy] = useState(false);
@@ -76,7 +76,8 @@ export default function Agent() {
   return (
     <div className="mx-auto flex h-[calc(100dvh-13rem)] min-h-[24rem] max-w-3xl flex-col md:h-[calc(100dvh-12.5rem)]">
       <div className="flex items-center justify-between pb-3">
-        <div className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-500">AI Marketing Agent</div>
+        <div className="flex items-center gap-3 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-500">AI Marketing Agent
+          {d.profile && <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-0.5 text-[9px] tracking-[0.15em] text-emerald-300">Live · @{d.profile.username}</span>}</div>
         {!empty && <button onClick={() => { setMsgs([]); setTyping(false); }} className="rounded-full border border-white/10 px-3 py-1 text-xs text-neutral-400 transition-colors duration-500 hover:bg-white/[0.06] hover:text-white">New chat</button>}
       </div>
 
@@ -85,7 +86,7 @@ export default function Agent() {
           <div className="flex h-full flex-col items-center justify-center text-center">
             <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-accent to-violet text-xl font-black text-ink shadow-glow">B</span>
             <h1 className="mt-6 text-3xl font-semibold tracking-tight md:text-4xl">How can I help your brand today?</h1>
-            <p className="mt-2 max-w-md text-sm text-neutral-500">{noData ? "No data is loaded yet, so I'll say so instead of guessing. " : "I use your loaded data, labelled by source. "}I suggest; you approve.</p>
+            <p className="mt-2 max-w-md text-sm text-neutral-500">{d.profile ? <>Answers are based on your profile <b className="text-neutral-300">@{d.profile.username}</b> ({Number(d.profile.followers_count).toLocaleString("en-IN")} followers, {d.posts.length} recent posts). </> : syncing ? "Loading your Instagram profile… " : noData ? "No data is loaded yet, so I'll say so instead of guessing. " : "I use your loaded data, labelled by source. "}I suggest; you approve.</p>
             <div className="mt-8 grid w-full gap-3 sm:grid-cols-2">
               {Q.map(([q, sub]) => (
                 <button key={q} onClick={() => send(q)} className="group rounded-2xl border border-white/10 bg-white/[0.03] p-4 text-left transition-all duration-700 ease-fluid hover:-translate-y-0.5 hover:bg-white/[0.06] active:scale-[0.98]">

@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { api } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { adAgg, buildContext, eng, insights, marketingScore, num, sum } from "@/lib/analytics";
@@ -12,23 +12,11 @@ import PostHighlights from "@/components/PostHighlights";
 const B = (s: string) => (s === "none" ? null : <Badge kind={s as any} />);
 
 export default function Dashboard() {
-  const { d, ready } = useStore(); 
+  const { d, ready, syncing } = useStore(); 
   const [brief, setBrief] = useState<any>(d.brief); 
   const [err, setErr] = useState(""); 
   const [busy, setBusy] = useState(false);
   const { update } = useStore();
-  const [syncing, setSyncing] = useState(false);
-  const tried = useRef(false);
-
-  // First visit with an empty workspace: pull live posts from Instagram (read-only) so the dashboard isn't blank.
-  useEffect(() => {
-    if (!ready || tried.current || d.posts.length > 0 || d.src.posts === "user") return;
-    tried.current = true; setSyncing(true);
-    api("/api/instagram/sync")
-      .then((r: any) => update((o: any) => ({ posts: r.posts || [], src: { ...o.src, posts: "real" } })))
-      .catch(() => {})
-      .finally(() => setSyncing(false));
-  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const daily = d.daily, posts = d.posts, ag = adAgg(d.ads), ins = insights(posts), score = marketingScore(d);
   const has = (a: any[]) => a.length > 0, fmt = (n: number) => Math.round(n).toLocaleString("en-IN");
