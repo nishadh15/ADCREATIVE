@@ -18,7 +18,7 @@ services:
         generateValue: true
       - key: FRONTEND_URL
         sync: false
-      - key: CLAUDE_API_KEY
+      - key: GROQ_API_KEYS
         sync: false
       - key: META_APP_ID
         sync: false

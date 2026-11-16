@@ -12,7 +12,7 @@ export default function Settings() {
       <h1 className="text-2xl font-bold">Settings</h1>
       <section className="rounded-xl border border-line bg-panel p-5 text-sm"><h2 className="mb-2 font-semibold">Connections</h2>
         {!s ? "Checking…" : s.error ? <span className="text-red-300">Backend unreachable</span> : <ul className="space-y-1"><li>Instagram (Meta Graph API): <b>{s.instagram.replace("_", " ")}</b></li><li>Claude API: <b>{s.claude.replace("_", " ")}</b></li></ul>}
-        <p className="mt-3 text-xs text-neutral-500">Set CLAUDE_API_KEY, META_ACCESS_TOKEN and META_IG_USER_ID on the Render backend (never in the frontend). Rotate any secret that has been shared in chat or email.</p></section>
+        <p className="mt-3 text-xs text-neutral-500">Set GROQ_API_KEYS (comma-separated), META_ACCESS_TOKEN and META_IG_USER_ID on the Render backend (never in the frontend). Rotate any secret that has been shared in chat or email.</p></section>
       <section className="rounded-xl border border-line bg-panel p-5"><h2 className="mb-1 font-semibold">Approval queue</h2>
         <p className="mb-4 text-xs text-neutral-500">Approving records your decision. Publishing and ad-spend execution adapters are NOT wired yet, so approved items are not sent to Instagram/Meta automatically; post them manually or via a later integration.</p>
         {d.actions.length === 0 && <p className="text-sm text-neutral-500">Nothing queued.</p>}

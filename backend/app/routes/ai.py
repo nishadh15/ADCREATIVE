@@ -35,7 +35,7 @@ def run(body: RunIn, user: str = Depends(current_user)):
         content = [{"type": "image", "source": {"type": "base64", **body.image}}, {"type": "text", "text": text}]
     try:
         out = cs.ask(COMMON + spec, content, search=search)
-        return {"module": body.module, "result": cs.parse_json(out), "model": cs.settings.claude_model}
+        return {"module": body.module, "result": cs.parse_json(out), "model": cs.settings.groq_model}
     except RuntimeError as e:
         raise HTTPException(503, str(e))
     except ValueError:

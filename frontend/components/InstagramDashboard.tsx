@@ -19,6 +19,12 @@ interface Post {
   timestamp: string;
 }
 
+const Shell = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
+  <div className={`rounded-[2rem] border border-white/10 bg-white/[0.03] p-1.5 ${className}`}>
+    <div className="h-full rounded-[calc(2rem-0.375rem)] bg-[#0a0a0a]/80 shadow-core">{children}</div>
+  </div>
+);
+
 export default function InstagramDashboard() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [insights, setInsights] = useState<any>(null);
@@ -57,81 +63,74 @@ export default function InstagramDashboard() {
     fetchInstagramData();
   }, []);
 
-  if (loading) return <div className="p-6 text-center text-gray-500">Loading Instagram Analytics...</div>;
-  if (error) return <div className="p-6 text-red-500 text-center">Error: {error}</div>;
+  if (loading) return (
+    <Shell><div className="flex items-center gap-3 p-6 text-sm text-neutral-400">
+      <span className="h-2 w-2 animate-pulse rounded-full bg-accent shadow-glow" />Syncing live Instagram analytics…
+    </div></Shell>
+  );
+  if (error) return <Shell><div className="p-6 text-sm text-red-300">Instagram: {error}</div></Shell>;
+
+  const stats = [
+    ["Daily Reach", insights?.reach?.[0]?.values?.slice(-1)[0]?.value ?? 0, "from-accent/20"],
+    ["Accounts Engaged", insights?.engagement?.find((e: any) => e.name === 'accounts_engaged')?.total_value?.value ?? 0, "from-emerald-400/20"],
+    ["Profile Views", insights?.engagement?.find((e: any) => e.name === 'profile_views')?.total_value?.value ?? 0, "from-violet/25"],
+  ] as const;
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="space-y-4">
       {overview && (
-        <div className="flex items-center gap-4 p-6 bg-white rounded-xl shadow-sm border border-gray-100">
-          {overview.profile_picture_url && (
-            <img
-              src={overview.profile_picture_url}
-              alt={overview.username}
-              className="w-16 h-16 rounded-full object-cover border-2 border-indigo-500"
-            />
-          )}
-          <div>
-            <h1 className="text-xl font-bold text-gray-900">{overview.name}</h1>
-            <p className="text-gray-500">@{overview.username}</p>
-          </div>
-          <div className="ml-auto flex gap-6">
-            <div className="text-center">
-              <span className="block text-2xl font-bold text-gray-900">{overview.followers_count}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wider">Followers</span>
+        <Shell>
+          <div className="flex flex-wrap items-center gap-5 p-6">
+            {overview.profile_picture_url && (
+              <img src={overview.profile_picture_url} alt={overview.username}
+                className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/60 ring-offset-4 ring-offset-[#0a0a0a]" />
+            )}
+            <div>
+              <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-emerald-300">Live · Meta Graph</span>
+              <h1 className="mt-2 text-xl font-semibold tracking-tight">{overview.name}</h1>
+              <p className="text-sm text-neutral-500">@{overview.username}</p>
             </div>
-            <div className="text-center">
-              <span className="block text-2xl font-bold text-gray-900">{overview.media_count}</span>
-              <span className="text-xs text-gray-500 uppercase tracking-wider">Posts</span>
+            <div className="ml-auto flex gap-8">
+              {[["Followers", overview.followers_count], ["Posts", overview.media_count]].map(([l, v]) => (
+                <div key={l as string}>
+                  <span className="block text-3xl font-semibold tabular-nums tracking-tight">{(v as number).toLocaleString("en-IN")}</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">{l}</span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        </Shell>
       )}
 
       {insights && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="p-5 bg-indigo-50 rounded-xl border border-indigo-100">
-            <span className="text-sm font-medium text-indigo-600">Daily Reach</span>
-            <p className="text-3xl font-extrabold text-indigo-900 mt-2">
-              {insights.reach?.[0]?.values?.slice(-1)[0]?.value ?? 0}
-            </p>
-          </div>
-          <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-100">
-            <span className="text-sm font-medium text-emerald-600">Accounts Engaged</span>
-            <p className="text-3xl font-extrabold text-emerald-900 mt-2">
-              {insights.engagement?.find((e: any) => e.name === 'accounts_engaged')?.total_value?.value ?? 0}
-            </p>
-          </div>
-          <div className="p-5 bg-purple-50 rounded-xl border border-purple-100">
-            <span className="text-sm font-medium text-purple-600">Profile Views</span>
-            <p className="text-3xl font-extrabold text-purple-900 mt-2">
-              {insights.engagement?.find((e: any) => e.name === 'profile_views')?.total_value?.value ?? 0}
-            </p>
-          </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {stats.map(([label, value, glow]) => (
+            <Shell key={label} className="transition-transform duration-700 ease-fluid hover:-translate-y-0.5">
+              <div className={`rounded-[calc(2rem-0.375rem)] bg-gradient-to-br ${glow} to-transparent p-6`}>
+                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">{label}</span>
+                <p className="mt-3 text-4xl font-semibold tabular-nums tracking-tight">{Number(value).toLocaleString("en-IN")}</p>
+              </div>
+            </Shell>
+          ))}
         </div>
       )}
 
-      <div className="space-y-4">
-        <h2 className="text-lg font-bold text-gray-800">Recent Posts Performance</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div className="pt-4">
+        <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">Recent posts</span>
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {posts.map((post) => (
-            <a
-              key={post.id}
-              href={post.permalink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block p-4 bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
-            >
-              <div className="flex justify-between items-center text-sm font-semibold text-gray-700 mb-2">
-                <span>❤️ {post.like_count ?? 0}</span>
-                <span>💬 {post.comments_count ?? 0}</span>
-              </div>
-              <p className="text-xs text-gray-600 line-clamp-2">
-                {post.caption || 'No caption provided.'}
-              </p>
-              <span className="text-[10px] text-gray-400 mt-3 block">
-                {new Date(post.timestamp).toLocaleDateString()}
-              </span>
+            <a key={post.id} href={post.permalink} target="_blank" rel="noopener noreferrer" className="group block">
+              <Shell className="transition-transform duration-700 ease-fluid group-hover:-translate-y-1">
+                <div className="p-5">
+                  <div className="mb-3 flex items-center gap-4 text-sm font-medium tabular-nums">
+                    <span className="text-accent">♥ {post.like_count ?? 0}</span>
+                    <span className="text-violet">● {post.comments_count ?? 0}</span>
+                    <span className="ml-auto grid h-7 w-7 place-items-center rounded-full bg-white/10 text-xs transition-transform duration-700 ease-fluid group-hover:-translate-y-px group-hover:translate-x-0.5">↗</span>
+                  </div>
+                  <p className="line-clamp-2 text-xs leading-relaxed text-neutral-400">{post.caption || 'No caption provided.'}</p>
+                  <span className="mt-4 block text-[10px] uppercase tracking-[0.15em] text-neutral-600">{new Date(post.timestamp).toLocaleDateString()}</span>
+                </div>
+              </Shell>
             </a>
           ))}
         </div>
