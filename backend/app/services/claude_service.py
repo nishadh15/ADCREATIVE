@@ -46,6 +46,12 @@ def _to_content(user):
             parts.append({"type": "text", "text": b.get("text", "")})
     return parts, has_img
 
+def _errmsg(model: str, r) -> str:
+    try:
+        return f"{model}: " + str(r.json().get("error", {}).get("message", r.text))[:240]
+    except Exception:
+        return f"{model}: {str(r.text)[:240]}"
+
 def complete(system: str, messages: list, max_tokens: int, json_mode: bool = False) -> tuple[str, str]:
     """Returns (text, model_used)."""
     msgs = [{"role": "system", "content": system}]
@@ -105,13 +111,15 @@ def complete(system: str, messages: list, max_tokens: int, json_mode: bool = Fal
                         ch = r2.json()["choices"][0]
                         if ch.get("finish_reason") != "length" and (ch["message"].get("content") or "").strip():
                             return ch["message"]["content"], model
+                    else:
+                        r = r2                         # the retry's error is the more informative one
                 except httpx.HTTPError:
                     pass
-                bad_request = r.text[:200]
+                bad_request = _errmsg(model, r)
                 break
             elif r.status_code in (400, 404, 413, 422):
                 # request/model-level problem: other keys give the same answer, so try the next model
-                bad_request = r.text[:200]
+                bad_request = _errmsg(model, r)
                 break
             else:
                 _mark(key, model, 30)
@@ -120,6 +128,32 @@ def complete(system: str, messages: list, max_tokens: int, json_mode: bool = Fal
     if bad_request and last.endswith(("400", "404", "413", "422")):
         raise ValueError(f"Groq rejected the request: {bad_request}")
     raise RuntimeError(f"All Groq keys/models failed or are rate-limited (last: {last}). Try again shortly.")
+
+def diagnose() -> dict:
+    """Tiny live test of every configured model, so setup problems are visible (no key material returned)."""
+    keys = settings.groq_keys
+    out = {"keys_configured": len(keys), "models": []}
+    if not keys:
+        return out
+    for model in settings.groq_model_list:
+        payload = {"model": model, "messages": [{"role": "user", "content": "Reply with the single word OK."}], "max_tokens": 200}
+        if model.startswith("openai/gpt-oss"):
+            payload["reasoning_effort"] = "low"
+        try:
+            r = httpx.post(URL, json=payload, headers={"Authorization": f"Bearer {keys[0]}"}, timeout=40)
+            if r.status_code == 200:
+                ch = r.json()["choices"][0]
+                out["models"].append({"model": model, "ok": True, "finish_reason": ch.get("finish_reason"),
+                                      "reply": (ch["message"].get("content") or "")[:40]})
+            else:
+                try:
+                    msg = r.json().get("error", {}).get("message", r.text)
+                except Exception:
+                    msg = r.text
+                out["models"].append({"model": model, "ok": False, "status": r.status_code, "error": str(msg)[:240]})
+        except httpx.HTTPError as e:
+            out["models"].append({"model": model, "ok": False, "error": type(e).__name__})
+    return out
 
 def ask(system: str, user, search: bool = False, max_tokens: int = 4000) -> str:
     # Groq has no web_search tool; `search` is accepted but ignored.

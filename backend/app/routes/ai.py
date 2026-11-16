@@ -44,11 +44,17 @@ def run(body: RunIn, user: str = Depends(current_user)):
                     raise
     except RuntimeError as e:
         raise HTTPException(503, str(e))
-    except ValueError:
-        raise HTTPException(502, "AI returned an unreadable response, try again")
+    except ValueError as e:
+        log.warning("ai ValueError: %s", e)
+        raise HTTPException(502, f"AI returned an unreadable response: {str(e)[:300]}")
     except Exception as e:
         log.exception("ai error")
         raise HTTPException(502, f"AI provider error: {type(e).__name__}")
+
+@router.get("/diagnose")
+def diagnose(user: str = Depends(current_user)):
+    """Live per-model test: shows which Groq models/keys actually work."""
+    return cs.diagnose()
 
 @router.post("/chat")
 def chat(body: ChatIn, user: str = Depends(current_user)):

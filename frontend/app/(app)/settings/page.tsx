@@ -5,7 +5,7 @@ import { useStore } from "@/lib/store";
 import Modal from "@/components/Modal";
 import JsonView from "@/components/JsonView";
 export default function Settings() {
-  const { d, decide } = useStore(); const [s, setS] = useState<any>(null); const [m, setM] = useState<any>(null); const [open, setOpen] = useState<any>(null);
+  const { d, decide } = useStore(); const [s, setS] = useState<any>(null); const [m, setM] = useState<any>(null); const [open, setOpen] = useState<any>(null); const [t, setT] = useState<any>(null); const [tb, setTb] = useState(false);
   useEffect(() => { api("/api/integrations/status").then(setS).catch(() => setS({ error: true })); }, []);
   return (
     <div className="space-y-8">
@@ -13,6 +13,12 @@ export default function Settings() {
       <section className="rounded-xl border border-line bg-panel p-5 text-sm"><h2 className="mb-2 font-semibold">Connections</h2>
         {!s ? "Checking…" : s.error ? <span className="text-red-300">Backend unreachable</span> : <ul className="space-y-1"><li>Instagram (Meta Graph API): <b>{s.instagram.replace("_", " ")}</b></li><li>AI (Groq): <b>{s.claude.replace("_", " ")}</b></li></ul>}
         <p className="mt-3 text-xs text-neutral-500">Set GROQ_API_KEYS (comma-separated), META_ACCESS_TOKEN and META_IG_USER_ID on the Render backend (never in the frontend). Rotate any secret that has been shared in chat or email.</p></section>
+      <section className="rounded-xl border border-line bg-panel p-5 text-sm"><h2 className="mb-1 font-semibold">AI connection test</h2>
+        <p className="mb-3 text-xs text-neutral-500">Sends a tiny request to each configured Groq model and shows exactly what works or fails.</p>
+        <button className="rounded-full bg-accent px-5 py-2 text-sm font-semibold text-ink disabled:opacity-50" disabled={tb} onClick={async () => { setTb(true); setT(null); try { setT(await api("/api/ai/diagnose")); } catch (e: any) { setT({ error: e.message }); } finally { setTb(false); } }}>{tb ? "Testing…" : "Test AI"}</button>
+        {t && (t.error ? <p className="mt-3 text-red-300">{t.error}</p> : <div className="mt-3 space-y-1 text-xs"><p className="text-neutral-400">Keys configured: <b>{t.keys_configured}</b></p>
+          {t.models.map((x: any) => <p key={x.model} className={x.ok ? "text-emerald-300" : "text-red-300"}>{x.ok ? "OK" : "FAIL"} · {x.model}{x.ok ? ` · replied "${x.reply}" (${x.finish_reason})` : ` · ${x.status ?? ""} ${x.error}`}</p>)}</div>)}
+      </section>
       <section className="rounded-xl border border-line bg-panel p-5"><h2 className="mb-1 font-semibold">Approval queue</h2>
         <p className="mb-4 text-xs text-neutral-500">Approving records your decision. Publishing and ad-spend execution adapters are NOT wired yet, so approved items are not sent to Instagram/Meta automatically; post them manually or via a later integration.</p>
         {d.actions.length === 0 && <p className="text-sm text-neutral-500">Nothing queued.</p>}
