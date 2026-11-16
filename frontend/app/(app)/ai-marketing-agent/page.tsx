@@ -141,17 +141,17 @@ export default function Agent() {
       <div ref={scroller} className="flex-1 overflow-y-auto pb-2 pr-2 sm:pr-3">
         <div className="flex min-h-full flex-col space-y-7">
           {empty ? (
-            <div className="my-auto flex flex-col items-center pt-8 text-center">
+            <div className="my-auto flex flex-col items-center pt-6 text-center">
               <div className="relative">
-                <h1 className="max-w-xl">How can I help<br /><span className="hl-orange">your brand today?</span></h1>
+                <h1 className="max-w-xl !text-4xl sm:!text-5xl">How can I help<br /><span className="hl-orange">your brand today?</span></h1>
                 <div className="sticker-wrap absolute -right-6 -top-10 rotate-12 sm:-right-12 sm:-top-10 lg:-right-20">
                   <div className="sticker h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28"><span className="font-display text-base uppercase leading-none sm:text-lg">Ask<br />me!</span></div>
                 </div>
               </div>
-              <p className="mt-5 max-w-md text-sm font-semibold text-neutral-500">{d.profile ? <>Answers are based on your profile <b className="text-ink">@{d.profile.username}</b> ({Number(d.profile.followers_count).toLocaleString("en-IN")} followers, {d.posts.length} recent posts). </> : syncing ? "Loading your Instagram profile… " : noData ? "No data is loaded yet, so I'll say so instead of guessing. " : "I use your loaded data, labelled by source. "}I suggest; you approve.</p>
-              <div className="mt-8 grid w-full gap-4 sm:grid-cols-2">
+              <p className="mt-3 max-w-md text-sm font-semibold text-neutral-500">{d.profile ? <>Answers are based on your profile <b className="text-ink">@{d.profile.username}</b> ({Number(d.profile.followers_count).toLocaleString("en-IN")} followers, {d.posts.length} recent posts). </> : syncing ? "Loading your Instagram profile… " : noData ? "No data is loaded yet, so I'll say so instead of guessing. " : "I use your loaded data, labelled by source. "}I suggest; you approve.</p>
+              <div className="mt-6 grid w-full gap-3 sm:grid-cols-2">
                 {Q.map(([q, sub, tone], i) => (
-                  <button key={q} onClick={() => send(q)} className={`brut-hover border-[3px] border-ink p-4 text-left shadow-brutsm ${tone} ${i % 2 ? "rotate-[0.6deg]" : "-rotate-[0.6deg]"}`}>
+                  <button key={q} onClick={() => send(q)} className={`brut-hover border-[3px] border-ink px-4 py-3 text-left shadow-brutsm ${tone} ${i % 2 ? "rotate-[0.6deg]" : "-rotate-[0.6deg]"}`}>
                     <div className="text-sm font-bold">{q}</div>
                     <div className="mt-1 font-mono text-[11px] font-bold text-neutral-500">{sub}</div>
                   </button>

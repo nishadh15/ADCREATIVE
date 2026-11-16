@@ -33,7 +33,7 @@ export default function IGAnalytics() {
         <button className={btn} onClick={sync}>Sync from Instagram</button>
         <button className={btn} onClick={() => setConfirm("demo")}>Load demo data</button>
         <button className={btn + " text-red-300"} onClick={() => setConfirm("clear")}>Clear all data</button>
-        <span className="ml-auto text-xs text-neutral-500">Templates: <a className="underline" download="daily.csv" href={dl("daily")}>daily</a> · <a className="underline" download="posts.csv" href={dl("posts")}>posts</a></span>
+        <span className="ml-auto text-xs text-neutral-500">Templates: <a className="tap px-1 underline" download="daily.csv" href={dl("daily")}>daily</a> · <a className="tap px-1 underline" download="posts.csv" href={dl("posts")}>posts</a></span>
         {msg && <p className="w-full text-xs text-amber-200">{msg}</p>}
       </div>
       {!ins && <p className="text-sm text-neutral-500">No post data loaded.</p>}

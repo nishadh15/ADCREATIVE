@@ -22,15 +22,25 @@ export default function Dashboard() {
   const has = (a: any[]) => a.length > 0, fmt = (n: number) => Math.round(n).toLocaleString("en-IN");
   const spend = ag.reduce((s: number, a: any) => s + a.spend, 0), rev = ag.reduce((s: number, a: any) => s + a.revenue, 0);
 
-  const cards: [string, string | null, string][] = [
-    ["Followers", has(daily) ? fmt(num(daily[daily.length - 1].followers)) : null, d.src.daily],
+  const prof = d.profile;
+  const likesT = sum(posts, "likes"), commentsT = sum(posts, "comments"), viewsT = sum(posts, "views");
+  const hasReach = posts.some((p: any) => num(p.reach) > 0);
+  const cardsAll: [string, string | null, string][] = [
+    ["Followers", prof ? fmt(num(prof.followers_count)) : has(daily) ? fmt(num(daily[daily.length - 1].followers)) : null, prof ? "real" : d.src.daily],
+    ["Posts", prof ? fmt(num(prof.media_count)) : null, "real"],
+    ["Likes", has(posts) ? fmt(likesT) : null, d.src.posts],
+    ["Comments", has(posts) ? fmt(commentsT) : null, d.src.posts],
+    ["Avg Likes / Post", has(posts) ? fmt(likesT / posts.length) : null, d.src.posts],
+    ["Engagement Rate", ins && hasReach ? ins.avg.toFixed(1) + "%" : null, d.src.posts],
+    ["Reel Views", viewsT > 0 ? fmt(viewsT) : null, d.src.posts],
     ["Follower Growth", daily.length > 1 ? "+" + fmt(num(daily[daily.length - 1].followers) - num(daily[0].followers)) : null, d.src.daily],
     ["Reach", has(daily) ? fmt(sum(daily, "reach")) : null, d.src.daily], ["Impressions", has(daily) ? fmt(sum(daily, "impressions")) : null, d.src.daily],
-    ["Engagement Rate", ins ? ins.avg.toFixed(1) + "%" : null, d.src.posts], ["Profile Visits", has(daily) ? fmt(sum(daily, "profile_visits")) : null, d.src.daily],
+    ["Profile Visits", has(daily) ? fmt(sum(daily, "profile_visits")) : null, d.src.daily],
     ["Website Clicks", has(daily) ? fmt(sum(daily, "website_clicks")) : null, d.src.daily], ["DMs", has(daily) ? fmt(sum(daily, "dms")) : null, d.src.daily],
-    ["Reel Views", has(posts) ? fmt(sum(posts, "views")) : null, d.src.posts], ["Ad Spend", has(ag) ? "₹" + fmt(spend) : null, d.src.ads],
+    ["Ad Spend", has(ag) ? "₹" + fmt(spend) : null, d.src.ads],
     ["Revenue", has(ag) ? "₹" + fmt(rev) : null, d.src.ads], ["ROAS", spend ? (rev / spend).toFixed(2) + "x" : null, d.src.ads]
   ];
+  const cards = cardsAll.filter(([, v]) => v != null);   // no empty "—" boxes
 
   async function genBrief() { 
     setBusy(true); 
@@ -71,7 +81,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {cards.map(([t, v, s]) => (
           <div key={t} className="brut-hover border-[3px] border-ink bg-bone p-4 shadow-brutsm">
-            <div className="flex items-center justify-between gap-2 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500">
               <span>{t}</span>
               {B(s)}
             </div>
@@ -79,6 +89,11 @@ export default function Dashboard() {
           </div>
         ))}
       </div>
+      {(!has(ag) || !has(daily)) && (
+        <p className="-mt-4 font-mono text-[11px] font-bold text-neutral-500">
+          // {!has(ag) && "Ad spend, revenue and ROAS appear once you upload ads data in Campaign Analytics. "}{!has(daily) && "Reach, impressions and follower growth need a daily CSV in Instagram Analytics."}
+        </p>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card title="Follower growth" badge={B(d.src.daily)}><Line data={daily.map((x: any) => num(x.followers))} /></Card>
