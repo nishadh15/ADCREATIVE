@@ -9,12 +9,6 @@ interface Overview {
   profile_picture_url?: string;
 }
 
-const Shell = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => (
-  <div className={`rounded-[2rem] border border-white/10 bg-white/[0.03] p-1.5 ${className}`}>
-    <div className="h-full rounded-[calc(2rem-0.375rem)] bg-[#0a0a0a]/80 shadow-core">{children}</div>
-  </div>
-);
-
 export default function InstagramDashboard() {
   const [overview, setOverview] = useState<Overview | null>(null);
   const [insights, setInsights] = useState<any>(null);
@@ -43,53 +37,48 @@ export default function InstagramDashboard() {
   }, []);
 
   if (loading) return (
-    <Shell><div className="flex items-center gap-3 p-6 text-sm text-neutral-400">
-      <span className="h-2 w-2 animate-pulse rounded-full bg-accent shadow-glow" />Syncing live Instagram analytics…
-    </div></Shell>
+    <div className="flex items-center gap-3 border-[3px] border-ink bg-bone p-5 font-mono text-sm font-bold shadow-brutsm">
+      <span className="h-3 w-3 animate-pulse bg-accent" />SYNCING LIVE INSTAGRAM ANALYTICS…
+    </div>
   );
-  if (error) return <Shell><div className="p-6 text-sm text-red-300">Instagram: {error}</div></Shell>;
+  if (error) return <div className="border-[3px] border-ink bg-peach p-5 font-mono text-sm font-bold shadow-brutsm">⚠ INSTAGRAM: {error}</div>;
 
   const stats = [
-    ["Daily Reach", insights?.reach?.[0]?.values?.slice(-1)[0]?.value ?? 0, "from-accent/20"],
-    ["Accounts Engaged", insights?.engagement?.find((e: any) => e.name === 'accounts_engaged')?.total_value?.value ?? 0, "from-emerald-400/20"],
-    ["Profile Views", insights?.engagement?.find((e: any) => e.name === 'profile_views')?.total_value?.value ?? 0, "from-violet/25"],
+    ["Daily reach", insights?.reach?.[0]?.values?.slice(-1)[0]?.value ?? 0, "bg-accent"],
+    ["Accounts engaged", insights?.engagement?.find((e: any) => e.name === 'accounts_engaged')?.total_value?.value ?? 0, "bg-lime"],
+    ["Profile views", insights?.engagement?.find((e: any) => e.name === 'profile_views')?.total_value?.value ?? 0, "bg-bone"],
   ] as const;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {overview && (
-        <Shell>
-          <div className="flex flex-wrap items-center gap-5 p-6">
-            {overview.profile_picture_url && (
-              <img src={overview.profile_picture_url} alt={overview.username}
-                className="h-16 w-16 rounded-full object-cover ring-2 ring-accent/60 ring-offset-4 ring-offset-[#0a0a0a]" />
-            )}
-            <div>
-              <span className="rounded-full border border-white/10 px-2.5 py-0.5 text-[9px] uppercase tracking-[0.2em] text-emerald-300">Live · Meta Graph</span>
-              <h1 className="mt-2 text-xl font-semibold tracking-tight">{overview.name}</h1>
-              <p className="text-sm text-neutral-500">@{overview.username}</p>
-            </div>
-            <div className="ml-auto flex gap-8">
-              {[["Followers", overview.followers_count], ["Posts", overview.media_count]].map(([l, v]) => (
-                <div key={l as string}>
-                  <span className="block text-3xl font-semibold tabular-nums tracking-tight">{(v as number).toLocaleString("en-IN")}</span>
-                  <span className="text-[10px] uppercase tracking-[0.2em] text-neutral-500">{l}</span>
-                </div>
-              ))}
-            </div>
+        <div className="flex flex-wrap items-center gap-5 border-[3px] border-ink bg-bone p-5 shadow-brut">
+          {overview.profile_picture_url && (
+            <img src={overview.profile_picture_url} alt={overview.username} className="h-20 w-20 border-[3px] border-ink object-cover shadow-brutsm" />
+          )}
+          <div>
+            <span className="tag">Live · Meta Graph</span>
+            <h2 className="mt-2 !text-3xl">{overview.name}</h2>
+            <p className="font-mono text-sm font-bold text-neutral-500">@{overview.username}</p>
           </div>
-        </Shell>
+          <div className="ml-auto flex gap-8">
+            {[["Followers", overview.followers_count], ["Posts", overview.media_count]].map(([l, v]) => (
+              <div key={l as string}>
+                <span className="block font-display text-5xl leading-none tabular-nums">{(v as number).toLocaleString("en-IN")}</span>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em] text-neutral-500">{l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {insights && (
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-          {stats.map(([label, value, glow]) => (
-            <Shell key={label} className="transition-transform duration-700 ease-fluid hover:-translate-y-0.5">
-              <div className={`rounded-[calc(2rem-0.375rem)] bg-gradient-to-br ${glow} to-transparent p-6`}>
-                <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-neutral-400">{label}</span>
-                <p className="mt-3 text-4xl font-semibold tabular-nums tracking-tight">{Number(value).toLocaleString("en-IN")}</p>
-              </div>
-            </Shell>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          {stats.map(([label, value, tone]) => (
+            <div key={label} className={`brut-hover border-[3px] border-ink p-5 shadow-brut ${tone}`}>
+              <span className="font-mono text-[10px] font-bold uppercase tracking-[0.18em]">{label}</span>
+              <p className="mt-2 font-display text-6xl leading-none tabular-nums">{Number(value).toLocaleString("en-IN")}</p>
+            </div>
           ))}
         </div>
       )}
